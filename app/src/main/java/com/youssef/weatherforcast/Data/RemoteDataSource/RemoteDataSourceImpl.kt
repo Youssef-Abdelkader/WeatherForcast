@@ -34,6 +34,6 @@ class RemoteDataSourceImpl private constructor(private val service: ApiService):
         units: String,
         language: String
     ): ForecastResponse {
-        return service.getCurrentForcast(lat,lon,units,language)
+        return service.getCurrentForecast(lat,lon,units,language)
     }
 }

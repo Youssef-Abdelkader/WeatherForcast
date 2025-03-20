@@ -16,7 +16,7 @@ interface ApiService {
             : WeatherResponse
 
     @GET("forecast")
-    suspend fun getCurrentForcast(@Query("lat") lat: Double,
+    suspend fun getCurrentForecast(@Query("lat") lat: Double,
                                   @Query("lon") lon: Double,
                                   @Query("units") units: String,
                                   @Query("lang") language: String,

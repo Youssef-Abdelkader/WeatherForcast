@@ -12,10 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.youssef.weatherforcast.Model.ForecastResponse
 import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.R
+
+
+
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
@@ -23,8 +28,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val forecastState by viewModel.forecast.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getWeather(lat = 21.0, lon = 25.0, units = "metric", language = "en")
-        viewModel.getForecast(lat = 23.0, lon = 26.0, units = "metric", language = "en")
+        viewModel.getWeather(lat = 31.197729, lon = 29.892540, units = "metric", language = "en")
+        viewModel.getForecast(lat = 31.197729, lon =29.892540, units = "metric", language = "en")
     }
 
     Box(
@@ -89,6 +94,14 @@ fun WeatherCard(weather: WeatherResponse) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // City Name
+            Text(
+                text = weather.name ?: "Unknown City",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
             // Weather Icon
             val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
             Image(
@@ -101,21 +114,22 @@ fun WeatherCard(weather: WeatherResponse) {
             Text(
                 text = "${weather.main.temp}°C",
                 style = MaterialTheme.typography.displaySmall,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier.padding(top = 8.dp)
             )
 
             // Weather Condition
             Text(
                 text = weather.weather.firstOrNull()?.description ?: "Unknown",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
             )
 
-            // Additional Details
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 WeatherDetailItem("Humidity", "${weather.main.humidity}%")
@@ -125,7 +139,6 @@ fun WeatherCard(weather: WeatherResponse) {
         }
     }
 }
-
 @Composable
 fun WeatherDetailItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {

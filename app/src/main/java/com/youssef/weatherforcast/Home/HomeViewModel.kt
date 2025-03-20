@@ -24,9 +24,9 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
             try {
                 val weatherModel = repository.getWeather(lat, lon, units, language)
                 _weather.value = weatherModel
-                Log.d("viewdata", "getWeather: $weatherModel") // Log the response
+                Log.d("HomeViewModel", "Weather data fetched: $weatherModel")
             } catch (e: Exception) {
-                Log.d("viewdata", "getWeather Error: ${e.message}") // Log any errors
+                Log.e("HomeViewModel", "Error fetching weather data: ${e.message}")
             }
         }
     }
@@ -36,13 +36,12 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
             try {
                 val forecastModel = repository.getForecast(lat, lon, units, language)
                 _forecast.value = forecastModel
-                Log.d("viewdata", "getForecast: $forecastModel") // Log the response
+                Log.d("HomeViewModel", "Forecast data fetched: $forecastModel")
             } catch (e: Exception) {
-                Log.d("viewdata", "getForecast Error: ${e.message}") // Log any errors
+                Log.e("HomeViewModel", "Error fetching forecast data: ${e.message}")
             }
         }
     }
-
 }
 
 class WeatherFactory(private val repo: Repo) : ViewModelProvider.Factory {

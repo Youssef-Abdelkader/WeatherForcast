@@ -17,8 +17,8 @@ fun FavouriteScreen() { CenteredScreen("Favourite Screen") }
 @Composable
 fun AlertsScreen() { CenteredScreen("Alerts Screen") }
 
-@Composable
-fun SettingsScreen() { CenteredScreen("Settings Screen") }
+//@Composable
+//fun SettingsScreen() { CenteredScreen("Settings Screen") }
 
 @Composable
 fun CenteredScreen(text: String) {

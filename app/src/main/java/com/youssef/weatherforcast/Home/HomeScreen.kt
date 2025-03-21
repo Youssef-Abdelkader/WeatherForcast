@@ -1,15 +1,17 @@
 package com.youssef.weatherforcast.Home
-//////////last edit from chatgpt
+//////////last edit
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -114,9 +116,10 @@ fun WeatherCard(weather: WeatherResponse) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Set container color to transparent
+            .padding(8.dp)
+            .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(40.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f)) // Slightly darker transparent background
     ) {
         Box(
             modifier = Modifier
@@ -126,7 +129,8 @@ fun WeatherCard(weather: WeatherResponse) {
                             Color(0xFF6A11CB), // Deep purple
                             Color(0xFF2575FC)  // Bright blue
                         )
-                    )
+                    ),
+                    shape = RoundedCornerShape(16.dp) // Rounded corners for smooth look
                 )
                 .padding(16.dp)
                 .fillMaxWidth()
@@ -138,7 +142,7 @@ fun WeatherCard(weather: WeatherResponse) {
                 Text(
                     text = weather.name ?: "Unknown City",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White, // White text for better contrast
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -152,14 +156,14 @@ fun WeatherCard(weather: WeatherResponse) {
                 Text(
                     text = "${weather.main.temp}°C",
                     style = MaterialTheme.typography.displaySmall,
-                    color = Color.White, // White text for better contrast
+                    color = Color.White,
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
                 Text(
                     text = weather.weather.firstOrNull()?.description ?: "Unknown",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.8f), // Slightly transparent white
+                    color = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
@@ -184,13 +188,14 @@ fun WeatherDetailItem(label: String, value: String, textColor: Color = Color.Whi
         Text(text = label, style = MaterialTheme.typography.titleSmall, color = textColor.copy(alpha = 0.8f))
         Text(text = value, style = MaterialTheme.typography.bodyLarge, color = textColor)
     }
-}@Composable
+}
+@Composable
 fun HourlyForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?) {
     Card(
         modifier = Modifier
             .width(100.dp)
-            .padding(4.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
+            .padding(4.dp).shadow(10.dp, shape = RoundedCornerShape(12.dp)),
+        elevation = CardDefaults.cardElevation(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Transparent background
     ) {
         Box(
@@ -198,8 +203,8 @@ fun HourlyForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherRes
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF6A11CB), // Deep purple
-                            Color(0xFF2575FC)  // Bright blue
+                            Color(0xFF6A11CB),
+                            Color(0xFF2575FC)
                         )
                     )
                 )
@@ -213,7 +218,7 @@ fun HourlyForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherRes
                 Text(
                     text = item.dt_txt?.substring(11, 16) ?: "N/A",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White // White text for contrast
+                    color = Color.White
                 )
 
                 val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
@@ -237,8 +242,9 @@ fun ForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
+            .padding(vertical = 4.dp)
+            .shadow(10.dp, shape = RoundedCornerShape(12.dp)),
+        elevation = CardDefaults.cardElevation(30.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Transparent background
     ) {
         Box(
@@ -246,8 +252,8 @@ fun ForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF6A11CB), // Deep purple
-                            Color(0xFF2575FC)  // Bright blue
+                            Color(0xFF6A11CB),
+                            Color(0xFF2575FC)
                         )
                     )
                 )
@@ -257,7 +263,7 @@ fun ForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // Add space between icon and text
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
                 Image(

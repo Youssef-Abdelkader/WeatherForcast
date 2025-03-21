@@ -18,6 +18,7 @@ import com.youssef.weatherforcast.Model.RepoImpl
 import com.youssef.weatherforcast.Navigation.AppNavHost
 import com.youssef.weatherforcast.Navigation.BottomNavigationBar
 import com.youssef.weatherforcast.Navigation.Screen
+import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.ui.theme.WeatherForcastTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,8 +27,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val apiService = RetrofitHelper.service
         val remoteDataSource = RemoteDataSourceImpl.getInstance(apiService)
-        val repo = RepoImpl(remoteDataSource)
-
+        val settingsPreferences = SettingsPreferences(this) // ✅ إنشاء instance من SettingsPreferences
+        val repo = RepoImpl(remoteDataSource, settingsPreferences)
         setContent {
             WeatherForcastTheme {
                 val navController = rememberNavController()

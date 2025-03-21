@@ -34,61 +34,63 @@ fun SettingsScreen(repo: Repo) {
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)) // تدرج لوني احترافي
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
+                ),
+            ) ){
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Settings",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-            SettingOption(
-                title = "Language",
-                iconRes = R.drawable.langauge,
-                options = listOf("Arabic", "English"),
-                selectedOption = selectedLanguage
-            ) {
-                viewModel.updateLanguage(it)
-            }
+                    // Language Setting
+                    SettingOption(
+                        title = "Language",
+                        iconRes = R.drawable.langauge,
+                        options = listOf("Arabic", "English"),
+                        selectedOption = selectedLanguage
+                    ) {
+                        viewModel.updateLanguage(it)
+                    }
 
-            SettingOption(
-                title = "Temperature Unit",
-                iconRes = R.drawable.tempreture,
-                options = listOf("Celsius", "Fahrenheit", "Kelvin"),
-                selectedOption = selectedTemperature
-            ) {
-                viewModel.updateTemperature(it)
-            }
+                    // Temperature Unit Setting
+                    SettingOption(
+                        title = "Temperature Unit",
+                        iconRes = R.drawable.tempreture,
+                        options = listOf("Celsius", "Fahrenheit", "Kelvin"),
+                        selectedOption = selectedTemperature
+                    ) {
+                        viewModel.updateTemperature(it)
+                    }
 
-            SettingOption(
-                title = "Location",
-                iconRes = R.drawable.location,
-                options = listOf("GPS", "Map"),
-                selectedOption = selectedLocation
-            ) {
-                viewModel.updateLocation(it)
-            }
+                    // Location Setting
+                    SettingOption(
+                        title = "Location",
+                        iconRes = R.drawable.location,
+                        options = listOf("GPS", "Map"),
+                        selectedOption = selectedLocation
+                    ) {
+                        viewModel.updateLocation(it)
+                    }
 
-            SettingOption(
-                title = "Wind Speed",
-                iconRes = R.drawable.wind,
-                options = listOf("Meter/sec", "Mile/hour"),
-                selectedOption = selectedWindSpeed
-            ) {
-                viewModel.updateWindSpeed(it)
+                    // Wind Speed Setting
+                    SettingOption(
+                        title = "Wind Speed",
+                        iconRes = R.drawable.wind,
+                        options = listOf("Meter/sec", "Mile/hour"),
+                        selectedOption = selectedWindSpeed
+                    ) {
+                        viewModel.updateWindSpeed(it)
+                    }
+                }
             }
-        }
-    }
 }
 
 @Composable
@@ -103,8 +105,8 @@ fun SettingOption(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .shadow(10.dp, shape = RoundedCornerShape(16.dp)), // تحسين الظل ليظهر بشكل احترافي
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)) // لون داكن متناسق مع التصميم
+            .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E))
     ) {
         Column(
             modifier = Modifier
@@ -115,7 +117,7 @@ fun SettingOption(
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = null,
-                    tint = Color(0xFF64B5F6), // لون أزرق فاتح يتماشى مع الخلفية
+                    tint = Color(0xFF64B5F6),
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -158,8 +160,8 @@ fun ChoiceChip(
             )
         },
         colors = FilterChipDefaults.elevatedFilterChipColors(
-            containerColor = if (isSelected) Color(0xFF64B5F6) else Color.Transparent, // لون أزرق فاتح للخيار المحدد
-            selectedContainerColor = Color(0xFF1E88E5) // لون أزرق أغمق للخيار النشط
+            containerColor = if (isSelected) Color(0xFF64B5F6) else Color.Transparent,
+            selectedContainerColor = Color(0xFF1E88E5)
         )
     )
 }

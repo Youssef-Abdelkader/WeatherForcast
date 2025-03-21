@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">WeatherForcast</string>
+    <string name="app_name">Weather Forecast</string>
+    <string name="next_hours">NEXT HOURS</string>
+    <string name="next_days">NEXT DAYS</string>
+    <string name="loading_weather">Loading current weather...</string>
+    <string name="loading_forecast">Loading forecast...</string>
+    <string name="no_forecast_data">No forecast data available</string>
+    <string name="unknown_city">Unknown City</string>
+    <string name="unknown">Unknown</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="pressure">Pressure</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="na">N/A</string>
+    <string name="no_date">No Date</string>
+    <string name="no_data">No data</string>
+    <string name="temp">Temp</string>
 </resources>

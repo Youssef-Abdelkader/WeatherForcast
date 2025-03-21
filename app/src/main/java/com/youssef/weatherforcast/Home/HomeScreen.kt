@@ -1,5 +1,6 @@
 package com.youssef.weatherforcast.Home
-//////////last edit
+
+import SettingsViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.youssef.weatherforcast.Model.ForecastResponse
 import com.youssef.weatherforcast.Model.WeatherResponse
@@ -23,13 +25,20 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
-    val weatherState by viewModel.weather.collectAsState()
-    val forecastState by viewModel.forecast.collectAsState()
+fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewModel) {
+    val weatherState by homeViewModel.weather.collectAsState()
+    val forecastState by homeViewModel.forecast.collectAsState()
+    val language by homeViewModel.language.collectAsState()
+    val units by homeViewModel.units.collectAsState()
+    val location by homeViewModel.location.collectAsState()
+    val windSpeedUnit by homeViewModel.windSpeed.collectAsState()
+    val settingsUpdated by settingsViewModel.settingsUpdated.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.getWeather(lat = 31.197729, lon = 29.892540, units = "metric", language = "en")
-        viewModel.getForecast(lat = 31.197729, lon = 29.892540, units = "metric", language = "en")
+    LaunchedEffect(settingsUpdated) {
+        if (settingsUpdated) {
+            homeViewModel.reloadSettings()
+            settingsViewModel.notifySettingsChanged(false)
+        }
     }
 
     Box(
@@ -48,10 +57,10 @@ fun HomeScreen(viewModel: HomeViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             weatherState?.let { weather ->
-                WeatherCard(weather)
+                WeatherCard(weather, windSpeedUnit, units, homeViewModel)
                 Spacer(modifier = Modifier.height(16.dp))
             } ?: Text(
-                text = "Loading current weather...",
+                text = stringResource(R.string.loading_weather),
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium
             )
@@ -59,7 +68,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
             forecastState?.let { forecast ->
                 if (!forecast.list.isNullOrEmpty()) {
                     Text(
-                        text = "NEXT HOURS",
+                        text = stringResource(R.string.next_hours),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         modifier = Modifier
@@ -72,8 +81,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
                             .padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(forecast.list.take(8)) {
-                            HourlyForecastItem(it, weatherState)
+                        items(forecast.list.take(8)) { item ->
+                            HourlyForecastItem(item, weatherState, homeViewModel, units)
                         }
                     }
                 }
@@ -83,7 +92,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 if (!forecast.list.isNullOrEmpty()) {
                     val groupedForecast = groupForecastByDay(forecast.list)
                     Text(
-                        text = "NEXT DAYS",
+                        text = stringResource(R.string.next_days),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         modifier = Modifier
@@ -91,112 +100,43 @@ fun HomeScreen(viewModel: HomeViewModel) {
                             .padding(bottom = 8.dp)
                     )
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(groupedForecast) {
-                            ForecastItem(it, weatherState)
+                        items(groupedForecast) { item ->
+                            ForecastItem(item, weatherState, homeViewModel, units)
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 } else {
                     Text(
-                        text = "No forecast data available",
+                        text = stringResource(R.string.no_forecast_data),
                         color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                        modifier = Modifier.padding(16.dp))
                 }
             } ?: Text(
-                text = "Loading forecast...",
+                text = stringResource(R.string.loading_forecast),
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium
             )
         }
     }
 }
+
 @Composable
-fun WeatherCard(weather: WeatherResponse) {
+fun WeatherCard(
+    weather: WeatherResponse,
+    windSpeedUnit: String,
+    temperatureUnit: String,
+    homeViewModel: HomeViewModel
+) {
+    val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
+    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
         elevation = CardDefaults.cardElevation(40.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f)) // Slightly darker transparent background
-    ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6A11CB), // Deep purple
-                            Color(0xFF2575FC)  // Bright blue
-                        )
-                    ),
-                    shape = RoundedCornerShape(16.dp) // Rounded corners for smooth look
-                )
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = weather.name ?: "Unknown City",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
-                Image(
-                    painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
-                    contentDescription = "Weather Icon",
-                    modifier = Modifier.size(100.dp)
-                )
-
-                Text(
-                    text = "${weather.main.temp}°C",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-
-                Text(
-                    text = weather.weather.firstOrNull()?.description ?: "Unknown",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    WeatherDetailItem("Humidity", "${weather.main.humidity}%", Color.White)
-                    WeatherDetailItem("Wind", "${weather.wind.speed} m/s", Color.White)
-                    WeatherDetailItem("Pressure", "${weather.main.pressure} hPa", Color.White)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WeatherDetailItem(label: String, value: String, textColor: Color = Color.White) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.titleSmall, color = textColor.copy(alpha = 0.8f))
-        Text(text = value, style = MaterialTheme.typography.bodyLarge, color = textColor)
-    }
-}
-@Composable
-fun HourlyForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?) {
-    Card(
-        modifier = Modifier
-            .width(100.dp)
-            .padding(4.dp).shadow(10.dp, shape = RoundedCornerShape(12.dp)),
-        elevation = CardDefaults.cardElevation(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Transparent background
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f))
     ) {
         Box(
             modifier = Modifier
@@ -204,48 +144,173 @@ fun HourlyForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherRes
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color(0xFF6A11CB),
-                            Color(0xFF2575FC)
-                        )
-                    )
+                            Color(0xFF2575FC))
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 )
-                .padding(8.dp)
-                .fillMaxWidth()
+                .padding(16.dp)
+                .fillMaxWidth())
+        {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Text(
+                text = weather.name ?: stringResource(R.string.unknown_city),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
+            Image(
+                painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(100.dp)
+            )
+
+            Text(
+                text = "$formattedTemp°${when (temperatureUnit) {
+                    "Celsius" -> "C"
+                    "Fahrenheit" -> "F"
+                    "Kelvin" -> "K"
+                    else -> "C"
+                }}",
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Text(
+                text = weather.weather.firstOrNull()?.description
+                    ?: stringResource(R.string.unknown),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = item.dt_txt?.substring(11, 16) ?: "N/A",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
+                WeatherDetailItem(
+                    stringResource(R.string.humidity),
+                    "${weather.main.humidity}%",
+                    Color.White
                 )
-
-                val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
-                Image(
-                    painter = painterResource(id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear),
-                    contentDescription = "Weather Icon",
-                    modifier = Modifier.size(40.dp)
+                WeatherDetailItem(
+                    stringResource(R.string.wind),
+                    "${weather.wind.speed} ${if (windSpeedUnit == "Meter/sec") "m/s" else "mph"}",
+                    Color.White
                 )
-
-                Text(
-                    text = "${item.main.temp}°C",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White // White text for contrast
+                WeatherDetailItem(
+                    stringResource(R.string.pressure),
+                    "${weather.main.pressure} hPa",
+                    Color.White
                 )
             }
         }
     }
+    }
 }
+
 @Composable
-fun ForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?) {
+fun WeatherDetailItem(label: String, value: String, textColor: Color = Color.White) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleSmall,
+            color = textColor.copy(alpha = 0.8f))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            color = textColor)
+    }
+}
+
+@Composable
+fun HourlyForecastItem(
+    item: ForecastResponse.Item0,
+    weatherResponse: WeatherResponse?,
+    homeViewModel: HomeViewModel,
+    temperatureUnit: String
+) {
+    val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
+    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+
+    Card(
+        modifier = Modifier
+            .width(100.dp)
+            .padding(4.dp)
+            .shadow(10.dp, shape = RoundedCornerShape(12.dp)),
+        elevation = CardDefaults.cardElevation(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF6A11CB),
+                            Color(0xFF2575FC))
+                    )
+                )
+                .padding(8.dp)
+                .fillMaxWidth())
+         {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = item.dt_txt?.substring(11, 16) ?: stringResource(R.string.na),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+
+            val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
+            Image(
+                painter = painterResource(
+                    id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
+                ),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(40.dp)
+            )
+
+            Text(
+                text = "$formattedTemp°${when (temperatureUnit) {
+                    "Celsius" -> "C"
+                    "Fahrenheit" -> "F"
+                    "Kelvin" -> "K"
+                    else -> "C"
+                }}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+        }
+    }
+    }
+}
+
+@Composable
+fun ForecastItem(
+    item: ForecastResponse.Item0,
+    weatherResponse: WeatherResponse?,
+    homeViewModel: HomeViewModel,
+    temperatureUnit: String
+) {
+    val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
+    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .shadow(10.dp, shape = RoundedCornerShape(12.dp)),
         elevation = CardDefaults.cardElevation(30.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Transparent background
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(
             modifier = Modifier
@@ -253,48 +318,57 @@ fun ForecastItem(item: ForecastResponse.Item0, weatherResponse: WeatherResponse?
                     brush = Brush.horizontalGradient(
                         colors = listOf(
                             Color(0xFF6A11CB),
-                            Color(0xFF2575FC)
-                        )
+                            Color(0xFF2575FC))
                     )
                 )
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth())
+         {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
+            Image(
+                painter = painterResource(
+                    id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
+                ),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(50.dp)
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start
             ) {
-                val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
-                Image(
-                    painter = painterResource(id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear),
-                    contentDescription = "Weather Icon",
-                    modifier = Modifier.size(50.dp)
-                )
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = item.dt_txt?.substring(0, 10) ?: "No Date",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White // White text for contrast
-                    )
-                    Text(
-                        text = "Temp: ${item.main.temp}°C",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f) // Slightly transparent white
-                    )
-                }
-
                 Text(
-                    text = item.weather.firstOrNull()?.description ?: "No data",
+                    text = item.dt_txt?.substring(0, 10) ?: stringResource(R.string.no_date),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+                Text(
+                    text = "${stringResource(R.string.temp)}: $formattedTemp°${
+                        when (temperatureUnit) {
+                            "Celsius" -> "C"
+                            "Fahrenheit" -> "F"
+                            "Kelvin" -> "K"
+                            else -> "C"
+                        }
+                    }",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f) // Slightly transparent white
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
+
+            Text(
+                text = item.weather.firstOrNull()?.description
+                    ?: stringResource(R.string.no_data),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f)
+            )
         }
+    }
     }
 }
 
@@ -310,4 +384,3 @@ fun groupForecastByDay(forecastList: List<ForecastResponse.Item0>): List<Forecas
     }
     return groupedForecast
 }
-////////////////the last edit

@@ -1,5 +1,6 @@
 package com.youssef.weatherforcast.Navigation
 
+import SettingsViewModel
 import SettingsViewModelFactory
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,16 +12,18 @@ import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Home.WeatherFactory
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
-
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     repo: Repo
 ) {
+    val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(repo))
+
     NavHost(navController, startDestination = Screen.Splash.route) {
         composable(Screen.Splash.route) { SplashScreen(navController) }
         composable(Screen.Home.route) {
-            HomeScreen(viewModel(factory = WeatherFactory(repo)))
+            val homeViewModel: HomeViewModel = viewModel(factory = WeatherFactory(repo))
+            HomeScreen(homeViewModel, settingsViewModel) // ✅ تمرير settingsViewModel
         }
         composable(Screen.Favourite.route) { FavouriteScreen() }
         composable(Screen.Alerts.route) { AlertsScreen() }

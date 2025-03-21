@@ -1,53 +1,56 @@
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import com.youssef.weatherforcast.Model.Repo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import com.youssef.weatherforcast.Model.Repo
 
 class SettingsViewModel(private val repo: Repo) : ViewModel() {
-    private val _selectedLanguage = MutableStateFlow("English")
+    private val _selectedLanguage = MutableStateFlow(repo.getSetting("language", "English"))
     val selectedLanguage: StateFlow<String> = _selectedLanguage
 
-    private val _selectedTemperature = MutableStateFlow("Celsius")
+    private val _selectedTemperature = MutableStateFlow(repo.getSetting("temperature", "Celsius"))
     val selectedTemperature: StateFlow<String> = _selectedTemperature
 
-    private val _selectedLocation = MutableStateFlow("GPS")
+    private val _selectedLocation = MutableStateFlow(repo.getSetting("location", "GPS"))
     val selectedLocation: StateFlow<String> = _selectedLocation
 
-    private val _selectedWindSpeed = MutableStateFlow("Meter/sec")
+    private val _selectedWindSpeed = MutableStateFlow(repo.getSetting("windSpeed", "Meter/sec"))
     val selectedWindSpeed: StateFlow<String> = _selectedWindSpeed
+
+    private val _settingsUpdated = MutableStateFlow(false)
+    val settingsUpdated: StateFlow<Boolean> = _settingsUpdated
 
     fun updateLanguage(language: String) {
         _selectedLanguage.value = language
-        saveSettings()
+        repo.saveSetting("language", language)
+        notifySettingsChanged()
     }
 
     fun updateTemperature(temp: String) {
         _selectedTemperature.value = temp
-        saveSettings()
+        repo.saveSetting("temperature", temp)
+        notifySettingsChanged()
     }
 
     fun updateLocation(location: String) {
         _selectedLocation.value = location
-        saveSettings()
+        repo.saveSetting("location", location)
+        notifySettingsChanged()
     }
 
     fun updateWindSpeed(speed: String) {
         _selectedWindSpeed.value = speed
-        saveSettings()
+        repo.saveSetting("windSpeed", speed)
+        notifySettingsChanged()
     }
 
-    private fun saveSettings() {
-        viewModelScope.launch {
-            repo.updateSettings(
-                _selectedLanguage.value,
-                _selectedTemperature.value,
-                _selectedLocation.value,
-                _selectedWindSpeed.value
-            )
-        }
+    fun notifySettingsChanged(updated: Boolean = true) {
+        _settingsUpdated.value = updated
+    }
+    // In your settings screen/viewmodel:
+    fun onLanguageSelected(languageCode: String) { // e.g., "ar" or "en"
+        repo.saveSetting("language", languageCode)
+        // Trigger reload in HomeViewModel
     }
 }
 

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Weather Forecast</string>
     <string name="next_hours">NEXT HOURS</string>
@@ -15,4 +16,7 @@
     <string name="no_date">No Date</string>
     <string name="no_data">No data</string>
     <string name="temp">Temp</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="sea_level">Sea Level</string>
 </resources>

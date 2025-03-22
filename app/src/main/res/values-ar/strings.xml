@@ -16,4 +16,7 @@
     <string name="no_date">لا يوجد تاريخ</string>
     <string name="no_data">لا توجد بيانات</string>
     <string name="temp">درجة الحرارة</string>
+    <string name="sunrise">شروق الشمس</string>
+    <string name="sunset">غروب الشمس</string>
+    <string name="sea_level">مستوى سطح البحر</string>
 </resources>

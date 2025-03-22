@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -120,6 +121,8 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
     }
 }
 
+
+
 @Composable
 fun WeatherCard(
     weather: WeatherResponse,
@@ -129,6 +132,9 @@ fun WeatherCard(
 ) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+
+    val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
+    val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
 
     Card(
         modifier = Modifier
@@ -142,93 +148,118 @@ fun WeatherCard(
             modifier = Modifier
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6A11CB),
-                            Color(0xFF2575FC))
+                        colors = listOf(Color(0xFF6A11CB), Color(0xFF2575FC))
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(16.dp)
-                .fillMaxWidth())
-        {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
         ) {
-            Text(
-                text = weather.name ?: stringResource(R.string.unknown_city),
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
-            Image(
-                painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
-                contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(100.dp)
-            )
-
-            Text(
-                text = "$formattedTemp°${when (temperatureUnit) {
-                    "Celsius" -> "C"
-                    "Fahrenheit" -> "F"
-                    "Kelvin" -> "K"
-                    else -> "C"
-                }}",
-                style = MaterialTheme.typography.displaySmall,
-                color = Color.White,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            Text(
-                text = weather.weather.firstOrNull()?.description
-                    ?: stringResource(R.string.unknown),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White.copy(alpha = 0.8f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                WeatherDetailItem(
-                    stringResource(R.string.humidity),
-                    "${weather.main.humidity}%",
-                    Color.White
+                // City Name
+                Text(
+                    text = weather.name ?: stringResource(R.string.unknown_city),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                WeatherDetailItem(
-                    stringResource(R.string.wind),
-                    "${weather.wind.speed} ${if (windSpeedUnit == "Meter/sec") "m/s" else "mph"}",
-                    Color.White
+
+                // Weather Icon
+                val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
+                Image(
+                    painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
+                    contentDescription = stringResource(R.string.weather_icon),
+                    modifier = Modifier.size(100.dp)
                 )
-                WeatherDetailItem(
-                    stringResource(R.string.pressure),
-                    "${weather.main.pressure} hPa",
-                    Color.White
+
+                // Temperature
+                Text(
+                    text = "$formattedTemp°${when (temperatureUnit) {
+                        "Celsius" -> "C"
+                        "Fahrenheit" -> "F"
+                        "Kelvin" -> "K"
+                        else -> "C"
+                    }}",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Color.White,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
+
+                // Weather Description
+                Text(
+                    text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Weather Details (Humidity, Wind, Pressure)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.humidity,
+                        label = stringResource(R.string.humidity),
+                        value = "${weather.main.humidity}%",
+                        textColor = Color.White
+                    )
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.windspeed,
+                        label = stringResource(R.string.wind),
+                        value = "${weather.wind.speed} ${if (windSpeedUnit == "Meter/sec") "m/s" else "mph"}",
+                        textColor = Color.White
+                    )
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.pressure,
+                        label = stringResource(R.string.pressure),
+                        value = "${weather.main.pressure} hPa",
+                        textColor = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Sunrise, Sunset, Sea Level
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.sunrise,
+                        label = stringResource(R.string.sunrise),
+                        value = sunriseTime,
+                        textColor = Color.White
+                    )
+
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.sunset,
+                        label = stringResource(R.string.sunset),
+                        value = sunsetTime,
+                        textColor = Color.White
+                    )
+
+                    WeatherDetailItemWithIcon(
+                        iconResId = R.drawable.sealevel,
+                        label = stringResource(R.string.sea_level),
+                        value = "${weather.main.sea_level} hPa",
+                        textColor = Color.White
+                    )
+                }
             }
         }
     }
-    }
 }
 
-@Composable
-fun WeatherDetailItem(label: String, value: String, textColor: Color = Color.White) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleSmall,
-            color = textColor.copy(alpha = 0.8f))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = textColor)
-    }
-}
 
 @Composable
 fun HourlyForecastItem(
@@ -384,3 +415,30 @@ fun groupForecastByDay(forecastList: List<ForecastResponse.Item0>): List<Forecas
     }
     return groupedForecast
 }
+
+@Composable
+fun WeatherDetailItemWithIcon(
+    iconResId: Int,
+    label: String,
+    value: String,
+    textColor: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = iconResId),
+            contentDescription = label,
+            modifier = Modifier.size(40.dp)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = textColor,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+////////last edit
+

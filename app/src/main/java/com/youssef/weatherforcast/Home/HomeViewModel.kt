@@ -71,12 +71,11 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
         getForecast(31.197729, 29.892540)
     }
 
-    // Temperature conversion function
     fun convertTemperature(temp: Double, unit: String): Double {
         return when (unit) {
-            "Celsius" -> temp - 273.15 // Convert from Kelvin to Celsius
-            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32 // Convert from Kelvin to Fahrenheit
-            "Kelvin" -> temp // No conversion needed
+            "Celsius" -> temp - 273.15
+            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
+            "Kelvin" -> temp
             else -> temp
         }
     }

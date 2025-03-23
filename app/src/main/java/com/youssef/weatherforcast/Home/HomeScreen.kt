@@ -59,7 +59,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
         ) {
             weatherState?.let { weather ->
                 WeatherCard(weather, windSpeedUnit, units, homeViewModel)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(15.dp))
             } ?: Text(
                 text = stringResource(R.string.loading_weather),
                 color = Color.White,
@@ -104,6 +104,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                         items(groupedForecast) { item ->
                             ForecastItem(item, weatherState, homeViewModel, units)
                             Spacer(modifier = Modifier.height(8.dp))
+                            
                         }
                     }
                 } else {
@@ -139,8 +140,8 @@ fun WeatherCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
+            .padding(2.dp)
+            .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
         elevation = CardDefaults.cardElevation(40.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f))
     ) {
@@ -152,7 +153,7 @@ fun WeatherCard(
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(16.dp)
+                .padding(8.dp)
                 .fillMaxWidth()
         ) {
             Column(
@@ -185,7 +186,7 @@ fun WeatherCard(
                     }}",
                     style = MaterialTheme.typography.displaySmall,
                     color = Color.White,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 2.dp)
                 )
 
                 // Weather Description
@@ -193,7 +194,7 @@ fun WeatherCard(
                     text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 2.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -432,10 +433,10 @@ fun WeatherDetailItemWithIcon(
             modifier = Modifier.size(40.dp)
         )
         Text(
-            text = label,
+            text = "$label\n$value", // "\n" moves the value to a new line
             style = MaterialTheme.typography.bodyLarge,
             color = textColor,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 2.dp)
         )
     }
 }

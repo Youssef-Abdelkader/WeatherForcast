@@ -10,9 +10,9 @@ import androidx.compose.ui.unit.dp
 
 //@Composable
 //fun HomeScreen() { CenteredScreen("Home Screen") }
-
-@Composable
-fun FavouriteScreen() { CenteredScreen("Favourite Screen") }
+//
+//@Composable
+//fun FavouriteScreen() { CenteredScreen("Favourite Screen") }
 
 @Composable
 fun AlertsScreen() { CenteredScreen("Alerts Screen") }

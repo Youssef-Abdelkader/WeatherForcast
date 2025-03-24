@@ -7,6 +7,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.youssef.weatherforcast.Favourite.FavoriteFactory
+import com.youssef.weatherforcast.Favourite.FavoriteScreen
+import com.youssef.weatherforcast.Favourite.MapScreen
 import com.youssef.weatherforcast.Home.HomeScreen
 import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Home.WeatherFactory
@@ -26,10 +29,14 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreen(homeViewModel, settingsViewModel)
         }
-        composable(Screen.Favourite.route) { FavouriteScreen() }
+        composable(Screen.Favourite.route) {
+            FavoriteScreen(navController = navController, repo = repo)
+        }
         composable(Screen.Alerts.route) { AlertsScreen() }
         composable(Screen.Settings.route) {
-            SettingsScreen(repo = repo)
+            SettingsScreen(repo = repo) }
+        composable(Screen.Map.route) {
+            MapScreen(navController, repo)
         }
     }
 }
@@ -41,4 +48,6 @@ sealed class Screen(val route: String) {
     object Favourite : Screen("favourite")
     object Alerts : Screen("alerts")
     object Settings : Screen("settings")
+    object Map : Screen("map_screen")
+
 }

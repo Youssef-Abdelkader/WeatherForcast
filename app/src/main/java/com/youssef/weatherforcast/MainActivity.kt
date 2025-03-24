@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.youssef.weatherforcast.Data.LocalDataSource.AppDatabase
 import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSourceImpl
 import com.youssef.weatherforcast.Data.RemoteDataSource.RetrofitHelper
 import com.youssef.weatherforcast.Home.HomeViewModel
@@ -55,7 +56,9 @@ class MainActivity : ComponentActivity() {
         val apiService = RetrofitHelper.service
         val remoteDataSource = RemoteDataSourceImpl.getInstance(apiService)
         val settingsPreferences = SettingsPreferences(this)
-        val repo = RepoImpl(remoteDataSource, settingsPreferences)
+        val favoriteDao = AppDatabase.getInstance(this).favoriteDao()
+
+        val repo = RepoImpl(remoteDataSource, settingsPreferences,favoriteDao)
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager

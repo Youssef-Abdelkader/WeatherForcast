@@ -12,18 +12,19 @@ import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Home.WeatherFactory
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    repo: Repo
+    repo: Repo,
+    homeViewModel: HomeViewModel
 ) {
     val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(repo))
 
     NavHost(navController, startDestination = Screen.Splash.route) {
         composable(Screen.Splash.route) { SplashScreen(navController) }
         composable(Screen.Home.route) {
-            val homeViewModel: HomeViewModel = viewModel(factory = WeatherFactory(repo))
-            HomeScreen(homeViewModel, settingsViewModel) // ✅ تمرير settingsViewModel
+            HomeScreen(homeViewModel, settingsViewModel)
         }
         composable(Screen.Favourite.route) { FavouriteScreen() }
         composable(Screen.Alerts.route) { AlertsScreen() }

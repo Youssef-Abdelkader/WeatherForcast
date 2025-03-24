@@ -1,5 +1,4 @@
 package com.youssef.weatherforcast.Setting
-
 import SettingsViewModel
 import SettingsViewModelFactory
 import androidx.compose.foundation.background
@@ -34,7 +33,7 @@ fun SettingsScreen(repo: Repo) {
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
+                    colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF), Color(0xFF6dd5ed))
                 ),
             ) ){
                 Column(
@@ -106,7 +105,7 @@ fun SettingOption(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2D3E))
     ) {
         Column(
             modifier = Modifier

@@ -1,5 +1,4 @@
 package com.youssef.weatherforcast.Data.RemoteDataSource
-
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -10,7 +9,5 @@ object RetrofitHelper {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     val service : ApiService = retrofitInstance.create(ApiService::class.java)
-
-
 
 }

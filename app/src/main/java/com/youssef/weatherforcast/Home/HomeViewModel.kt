@@ -31,7 +31,8 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
     val windSpeed = _windSpeed.asStateFlow()
 
     init {
-        loadWeatherAndForecast()
+        // Initialize settings but don't load data yet
+        reloadSettings()
     }
 
     fun getWeather(lat: Double, lon: Double) {
@@ -63,12 +64,13 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
         _units.value = repository.getSetting("temperature", "Celsius")
         _location.value = repository.getSetting("location", "GPS")
         _windSpeed.value = repository.getSetting("windSpeed", "Meter/sec")
-        loadWeatherAndForecast()
+
     }
 
-    private fun loadWeatherAndForecast() {
-        getWeather(31.197729, 29.892540) // Default coordinates (Alexandria)
-        getForecast(31.197729, 29.892540)
+    fun loadWeatherAndForecast(lat: Double, lon: Double) {
+        Log.d("HomeViewModel", "Loading data for coordinates: ($lat, $lon)")
+        getWeather(lat, lon)
+        getForecast(lat, lon)
     }
 
     fun convertTemperature(temp: Double, unit: String): Double {
@@ -79,8 +81,16 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
             else -> temp
         }
     }
+
     fun formatTemperature(temp: Double): String {
         return String.format("%.2f", temp)
+    }
+
+    // Add this function to handle manual location updates
+    fun updateManualLocation(lat: Double, lon: Double) {
+        if (_location.value == "Manual") {
+            loadWeatherAndForecast(lat, lon)
+        }
     }
 }
 

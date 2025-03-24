@@ -47,10 +47,12 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1E3A8A), Color(0xFF0F4C81))
+                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
                 )
             )
-    ) {
+
+    )
+     {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,7 +106,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                         items(groupedForecast) { item ->
                             ForecastItem(item, weatherState, homeViewModel, units)
                             Spacer(modifier = Modifier.height(8.dp))
-                            
+
                         }
                     }
                 } else {
@@ -148,9 +150,9 @@ fun WeatherCard(
         Box(
             modifier = Modifier
                 .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF6A11CB), Color(0xFF2575FC))
-                    ),
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF), Color(0xFF87CEFA)) // Deep Sky Blue to Light Sky Blue
+                ),
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(8.dp)
@@ -284,9 +286,7 @@ fun HourlyForecastItem(
             modifier = Modifier
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6A11CB),
-                            Color(0xFF2575FC))
+                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
                     )
                 )
                 .padding(8.dp)
@@ -347,12 +347,12 @@ fun ForecastItem(
         Box(
             modifier = Modifier
                 .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF6A11CB),
-                            Color(0xFF2575FC))
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
                     )
                 )
+
+
                 .padding(16.dp)
                 .fillMaxWidth())
          {

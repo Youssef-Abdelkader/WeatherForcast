@@ -28,7 +28,7 @@ fun BottomNavigationBar(navController: NavController) {
     )
 
     val gradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1E3A8A), Color(0xFF4F46E5))
+        colors = listOf(Color(0xFF00BFFF), Color(0xFF87CEFA))
     )
 
     NavigationBar(

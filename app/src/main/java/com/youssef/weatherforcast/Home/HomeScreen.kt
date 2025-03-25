@@ -3,6 +3,7 @@ package com.youssef.weatherforcast.Home
 import SettingsViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,7 +25,6 @@ import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.R
 import java.text.SimpleDateFormat
 import java.util.Locale
-
 @Composable
 fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewModel) {
     val weatherState by homeViewModel.weather.collectAsState()
@@ -50,80 +50,83 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                     colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
                 )
             )
-
-    )
-     {
-        Column(
+    ) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            weatherState?.let { weather ->
-                WeatherCard(weather, windSpeedUnit, units, homeViewModel)
-                Spacer(modifier = Modifier.height(15.dp))
-            } ?: Text(
-                text = stringResource(R.string.loading_weather),
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium
-            )
+            // ✅ عرض بيانات الطقس الرئيسية
+            item {
+                weatherState?.let { weather ->
+                    WeatherCard(weather, windSpeedUnit, units, homeViewModel)
+                    Spacer(modifier = Modifier.height(15.dp))
+                } ?: Text(
+                    text = stringResource(R.string.loading_weather),
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
 
-            forecastState?.let { forecast ->
-                if (!forecast.list.isNullOrEmpty()) {
-                    Text(
-                        text = stringResource(R.string.next_hours),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .padding(bottom = 8.dp)
-                    )
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(forecast.list.take(8)) { item ->
-                            HourlyForecastItem(item, weatherState, homeViewModel, units)
+            // ✅ التوقعات لكل ساعة
+            item {
+                forecastState?.let { forecast ->
+                    if (!forecast.list.isNullOrEmpty()) {
+                        Text(
+                            text = stringResource(R.string.next_hours),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(forecast.list.take(8)) { item ->
+                                HourlyForecastItem(item, weatherState, homeViewModel, units)
+                            }
                         }
                     }
                 }
             }
 
+            // ✅ التوقعات الأسبوعية
             forecastState?.let { forecast ->
                 if (!forecast.list.isNullOrEmpty()) {
                     val groupedForecast = groupForecastByDay(forecast.list)
-                    Text(
-                        text = stringResource(R.string.next_days),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .padding(bottom = 8.dp)
-                    )
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(groupedForecast) { item ->
-                            ForecastItem(item, weatherState, homeViewModel, units)
-                            Spacer(modifier = Modifier.height(8.dp))
 
-                        }
+                    item {
+                        Text(
+                            text = stringResource(R.string.next_days),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    items(groupedForecast) { item ->
+                        ForecastItem(item, weatherState, homeViewModel, units)
                     }
                 } else {
-                    Text(
-                        text = stringResource(R.string.no_forecast_data),
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp))
+                    item {
+                        Text(
+                            text = stringResource(R.string.no_forecast_data),
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
-            } ?: Text(
-                text = stringResource(R.string.loading_forecast),
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium
-            )
+            } ?: item {
+                Text(
+                    text = stringResource(R.string.loading_forecast),
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }
-
 
 
 @Composable
@@ -276,55 +279,70 @@ fun HourlyForecastItem(
 
     Card(
         modifier = Modifier
-            .width(100.dp)
-            .padding(4.dp)
-            .shadow(10.dp, shape = RoundedCornerShape(12.dp)),
-        elevation = CardDefaults.cardElevation(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            .fillMaxSize().padding(8.dp),
+        shape = RoundedCornerShape(40.dp),
+        //colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(12.dp)
     ) {
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
-                    )
+                        colors = listOf(
+                            Color(0xFF2193b0).copy(alpha = 1f),
+                            Color(0xFF6dd5ed).copy(alpha = 1f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(40.dp)
                 )
-                .padding(8.dp)
-                .fillMaxWidth())
-         {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(12.dp)
         ) {
-            Text(
-                text = item.dt_txt?.substring(11, 16) ?: stringResource(R.string.na),
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // ✅ وقت التوقع
+                Text(
+                    text = item.dt_txt?.substring(11, 16) ?: stringResource(R.string.na),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
 
-            val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
-            Image(
-                painter = painterResource(
-                    id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
-                ),
-                contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(40.dp)
-            )
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "$formattedTemp°${when (temperatureUnit) {
-                    "Celsius" -> "C"
-                    "Fahrenheit" -> "F"
-                    "Kelvin" -> "K"
-                    else -> "C"
-                }}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
+                val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
+                Image(
+                    painter = painterResource(
+                        id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
+                    ),
+                    contentDescription = stringResource(R.string.weather_icon),
+                    modifier = Modifier.size(60.dp)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "$formattedTemp°${
+                        when (temperatureUnit) {
+                            "Celsius" -> "C"
+                            "Fahrenheit" -> "F"
+                            "Kelvin" -> "K"
+                            else -> "C"
+                        }
+                    }",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            }
         }
     }
-    }
 }
+
+
+
 
 @Composable
 fun ForecastItem(

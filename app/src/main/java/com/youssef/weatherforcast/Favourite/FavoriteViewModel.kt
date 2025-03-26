@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Model.FavoriteLocation
+import com.youssef.weatherforcast.Model.WeatherResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -30,6 +31,10 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
                 Log.e("FavoriteViewModel", "Error loading favorites: ${e.message}")
             }
         }
+    }
+
+    suspend fun getWeather(lat: Double, lon: Double): WeatherResponse? {
+        return repo.getWeather(lat, lon, "metric", "en")
     }
 
     fun addFavorite(location: FavoriteLocation) {

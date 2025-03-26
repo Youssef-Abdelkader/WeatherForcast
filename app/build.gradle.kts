@@ -86,6 +86,10 @@ dependencies {
     implementation ("androidx.work:work-runtime-ktx:2.8.1")
     implementation("com.google.maps.android:places-compose:0.1.3")
     implementation ("com.google.android.libraries.places:places:3.3.0")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
 
 
 

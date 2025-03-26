@@ -98,7 +98,7 @@ fun MapScreen(navController: NavController, repo: Repo) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { selectedLocation?.let {
-                    MapScreenViewModel.insertFavoriteLocation(lat = it.latitude, lon = it.longitude, name = searchText)
+                    MapScreenViewModel.insertFavoriteLocation(lat = it.latitude, lon = it.longitude, name = searchText, context)
                     } },
                 modifier = Modifier.padding(16.dp)
             ) {

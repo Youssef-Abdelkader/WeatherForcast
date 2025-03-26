@@ -1,4 +1,5 @@
 package com.youssef.weatherforcast
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -23,6 +24,8 @@ import androidx.navigation.compose.rememberNavController
 import com.youssef.weatherforcast.Data.LocalDataSource.AppDatabase
 import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSourceImpl
 import com.youssef.weatherforcast.Data.RemoteDataSource.RetrofitHelper
+import com.youssef.weatherforcast.Favourite.FavoriteFactory
+import com.youssef.weatherforcast.Favourite.FavoriteViewModel
 import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Home.WeatherFactory
 import com.youssef.weatherforcast.Model.RepoImpl
@@ -35,6 +38,7 @@ import com.youssef.weatherforcast.ui.theme.WeatherForcastTheme
 class MainActivity : ComponentActivity() {
     private lateinit var locationManager: LocationManager
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var favoriteViewModel: FavoriteViewModel
     private val REQUEST_LOCATION_PERMISSION = 1001
 
     private val locationListener = object : LocationListener {
@@ -53,14 +57,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Initialize Database and Repositories
         val apiService = RetrofitHelper.service
         val remoteDataSource = RemoteDataSourceImpl.getInstance(apiService)
         val settingsPreferences = SettingsPreferences(this)
-        val favoriteDao = AppDatabase.getInstance(this).favoriteDao()
+        val database = AppDatabase.getInstance(applicationContext)
+        val favoriteDao = database.favoriteDao()
 
-        val repo = RepoImpl(remoteDataSource, settingsPreferences,favoriteDao)
+        // Initialize Repo with DAO
+        val repo = RepoImpl(remoteDataSource, settingsPreferences, favoriteDao)
+
+        // Initialize ViewModels correctly
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
+        favoriteViewModel = ViewModelProvider(this, FavoriteFactory(repo))[FavoriteViewModel::class.java]
 
+        // Get Location Manager
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         setContent {
@@ -77,7 +88,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        AppNavHost(navController, repo, homeViewModel)
+                        AppNavHost(navController, repo, homeViewModel, favoriteViewModel)
                     }
                 }
             }
@@ -91,13 +102,20 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
+            ) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED -> {
                 requestLocationUpdates()
             }
             else -> {
                 ActivityCompat.requestPermissions(
                     this,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
                     REQUEST_LOCATION_PERMISSION
                 )
             }
@@ -108,8 +126,8 @@ class MainActivity : ComponentActivity() {
         try {
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                0L,
-                0f,
+                5000L, // Update every 5 seconds
+                10f,   // Update if moved by 10 meters
                 locationListener
             )
         } catch (e: SecurityException) {
@@ -127,7 +145,9 @@ class MainActivity : ComponentActivity() {
             REQUEST_LOCATION_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     requestLocationUpdates()
-                    homeViewModel.loadWeatherAndForecast(31.197729, 29.892540)
+                } else {
+                    Log.e("Permission", "Location permission denied!")
+                    homeViewModel.loadWeatherAndForecast(30.033, 31.233) // Default to Cairo
                 }
             }
         }

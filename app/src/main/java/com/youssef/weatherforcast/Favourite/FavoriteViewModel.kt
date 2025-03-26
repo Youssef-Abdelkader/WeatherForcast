@@ -36,6 +36,7 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         viewModelScope.launch {
             try {
                 repo.insertFavorite(location)
+                getAllFavorites()
                 Log.d("FavoriteViewModel", "Added to favorites: $location")
             } catch (e: Exception) {
                 Log.e("FavoriteViewModel", "Error adding favorite: ${e.message}")
@@ -47,6 +48,7 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         viewModelScope.launch {
             try {
                 repo.deleteFavorite(location)
+                getAllFavorites()
                 Log.d("FavoriteViewModel", "Removed from favorites: $location")
             } catch (e: Exception) {
                 Log.e("FavoriteViewModel", "Error removing favorite: ${e.message}")

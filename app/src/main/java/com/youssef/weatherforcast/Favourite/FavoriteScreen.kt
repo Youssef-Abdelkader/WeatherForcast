@@ -37,7 +37,7 @@ import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 
 @Composable
-fun FavoriteScreen(navController: NavController, repo: Repo) {
+fun FavoriteScreen(navController: NavController, repo: Repo,favoriteViewModel: FavoriteViewModel) {
     val viewModel: FavoriteViewModel = viewModel(factory = FavoriteFactory(repo))
 
     val favorites by viewModel.favorites.collectAsState(emptyList())

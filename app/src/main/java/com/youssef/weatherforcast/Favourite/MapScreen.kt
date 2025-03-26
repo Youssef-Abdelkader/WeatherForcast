@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun MapScreen(navController: NavController, repo: Repo) {
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
@@ -100,7 +102,7 @@ fun MapScreen(navController: NavController, repo: Repo) {
                     } },
                 modifier = Modifier.padding(16.dp)
             ) {
-                Icon(Icons.Default.Place, "Select Location")
+                Icon(Icons.Default.Favorite, "Select Location")
             }
         }
     ) { paddingValues ->

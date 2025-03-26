@@ -85,14 +85,12 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
     }
 }
 
-
 @Composable
 fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 12.dp)
-            .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
+            .padding(vertical = 8.dp, horizontal = 12.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
@@ -109,16 +107,14 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // ✅ إزالة `CircleShape` حتى يظهر العلم بشكل طبيعي
                 AsyncImage(
                     model = "https://flagcdn.com/w320/${location.countryCode.lowercase()}.png",
                     contentDescription = "Country Flag",
                     modifier = Modifier
-                        .size(70.dp) // ✅ تكبير حجم العلم ليكون أكثر وضوحًا
-                        .background(Color.White)
+                        .size(60.dp) // ✅ تقليل حجم العلم قليلاً
                 )
 
-                Spacer(modifier = Modifier.width(16.dp)) // ✅ تحسين المسافة بين العلم والمعلومات
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -128,13 +124,15 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // ✅ تقليل حجم إحداثيات `Lat` و `Lon`
                     Text(
-                        text = "Lat: ${location.latitude}, Lon: ${location.longitude}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f)
+                        text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude), // ✅ تقليل عدد الأرقام العشرية
+                        style = MaterialTheme.typography.bodySmall, // ✅ استخدام خط أصغر
+                        color = Color.White.copy(alpha = 0.6f) // ✅ تقليل الوضوح
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // ✅ عرض درجة الحرارة إن وجدت
                     weather?.let {
@@ -158,7 +156,7 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                         painter = painterResource(id = iconRes),
                         contentDescription = "Weather Icon",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(60.dp)
+                        modifier = Modifier.size(50.dp) // ✅ تقليل حجم الأيقونة قليلاً
                     )
                 }
 
@@ -168,14 +166,14 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                 IconButton(
                     onClick = onRemove,
                     modifier = Modifier
-                        .size(48.dp) // ✅ جعل الزر أكبر قليلاً
+                        .size(42.dp) // ✅ تصغير زر الحذف
                         .background(Color(0xFFFF5252), shape = CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Remove",
                         tint = Color.White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp) // ✅ تقليل حجم الأيقونة داخل الزر
                     )
                 }
             }

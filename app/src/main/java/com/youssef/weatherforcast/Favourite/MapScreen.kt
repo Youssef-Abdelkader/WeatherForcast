@@ -1,6 +1,7 @@
 package com.youssef.weatherforcast.Favourite
 
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,14 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.BuildConfig
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.LocationBias
+import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.PlaceTypes
 import com.google.android.libraries.places.api.model.RectangularBounds
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.kotlin.awaitFindAutocompletePredictions
 import com.google.android.libraries.places.compose.autocomplete.components.PlacesAutocompleteTextField
 import com.google.android.libraries.places.compose.autocomplete.models.AutocompletePlace
@@ -31,75 +37,70 @@ import com.youssef.weatherforcast.Data.RemoteDataSource.Constants
 import com.youssef.weatherforcast.Model.Repo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlin.time.Duration.Companion.milliseconds
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(navController: NavController, repo: Repo) {
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     val context = LocalContext.current
-
-    // تهيئة Places API
+    val MapScreenViewModel: MapScreenViewModel = viewModel(factory = MapScreenViewModelFactory(repo))
+    val insertState by MapScreenViewModel.insertState.collectAsStateWithLifecycle()
+    // Initialize Places API
     Places.initializeWithNewPlacesApiEnabled(context, Constants.GeoApi)
     val placesClient = Places.createClient(context)
 
-    val bias: LocationBias = RectangularBounds.newInstance(
-        LatLng(39.9, -105.5),
-        LatLng(40.1, -105.0) // NE lat, lng
-    )
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(30.033, 31.233), 10f)
+    }
 
     var searchText by remember { mutableStateOf("") }
     var predictions by remember { mutableStateOf(emptyList<AutocompletePrediction>()) }
-
-    // استخدام Flow مع debounce لمنع استدعاء البحث في كل إدخال
     val searchTextFlow = remember { MutableStateFlow("") }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(insertState) {
+        if (insertState == true) {
+            Toast.makeText(context, "Location saved successfully", Toast.LENGTH_SHORT).show()
+            navController.popBackStack()
+        }
+        else if (insertState == false) {
+            Toast.makeText(context, "Error saving location", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
+
+
+
 
     LaunchedEffect(searchTextFlow) {
-        searchTextFlow.collect { query ->
+        searchTextFlow.debounce(300.milliseconds).collect { query ->
             if (query.isNotEmpty()) {
                 try {
                     val response = placesClient.awaitFindAutocompletePredictions {
-                       // locationBias = bias
                         typesFilter = listOf(PlaceTypes.CITIES)
                         this.query = query
-                        Log.e("MapScreen", "Error fetching query: ${query}")
-
-                        //countries = listOf("US") // اجعلها ديناميكية إذا كنت تريد دعم دول أخرى
                     }
-                    Log.e("MapScreen", "log fetching : ")
-
                     predictions = response.autocompletePredictions
-                    Log.e("MapScreen", "Error fetching : ${predictions.get(0)}")
-
                 } catch (e: Exception) {
-
                     Log.e("MapScreen", "Error fetching predictions: ${e.message}")
                 }
             }
         }
     }
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-            LatLng(30.033, 31.233), 10f
-        )
-    }
-
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Select Location") })
-        },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    selectedLocation?.let {
-                        navController.popBackStack()
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.primary,
+                onClick = { selectedLocation?.let {
+                    MapScreenViewModel.insertFavoriteLocation(lat = it.latitude, lon = it.longitude, name = searchText)
+                    } },
                 modifier = Modifier.padding(16.dp)
             ) {
-                Icon(imageVector = Icons.Default.Place, contentDescription = "Select Location")
+                Icon(Icons.Default.Place, "Select Location")
             }
         }
     ) { paddingValues ->
@@ -108,35 +109,57 @@ fun MapScreen(navController: NavController, repo: Repo) {
                 .fillMaxSize()
                 .padding(paddingValues),
             cameraPositionState = cameraPositionState,
-            onMapClick = { latLng ->
-                selectedLocation = latLng
-            }
+            onMapClick = { selectedLocation = it }
         ) {
             selectedLocation?.let {
-                Marker(
-                    state = MarkerState(position = it),
-                    title = "Selected Location"
-                )
+                Marker(state = MarkerState(it), title = "Selected Location")
             }
         }
 
         PlacesAutocompleteTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 100.dp, ),
+                .padding(10.dp),
             searchText = searchText,
-
-            predictions = predictions.map {
-                it.toPlaceDetails()
-            },
+            predictions = predictions.map { it.toPlaceDetails() },
             onQueryChanged = { query ->
                 searchText = query
                 searchTextFlow.value = query
             },
-            onSelected = { autocompletePlace: AutocompletePlace ->
-                predictions= emptyList()
-            },
-
+            onSelected = { autocompletePlace ->
+                predictions = emptyList()
+                searchText = autocompletePlace.primaryText.toString()
+                coroutineScope.launch {
+                    try {
+                        val request = FetchPlaceRequest.newInstance(
+                            autocompletePlace.placeId,
+                            listOf(Place.Field.LAT_LNG)
+                        )
+                        val response = placesClient.fetchPlace(request).await()
+                        response.place.latLng?.let { latLng ->
+                            selectedLocation = latLng
+                            cameraPositionState.move(
+                                CameraUpdateFactory.newLatLngZoom(latLng, 12f)
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MapScreen", "Error fetching place: ${e.message}")
+                    }
+                }
+            }
         )
     }
+}
+data class AutocompletePlace(
+    val placeId: String,
+    val primaryText: String,
+    val secondaryText: String
+)
+
+private fun AutocompletePrediction.toPlaceDetails(): com.youssef.weatherforcast.Favourite.AutocompletePlace {
+    return AutocompletePlace(
+        placeId = this.placeId,
+        primaryText = this.getPrimaryText(null).toString(),
+        secondaryText = this.getSecondaryText(null).toString()
+    )
 }

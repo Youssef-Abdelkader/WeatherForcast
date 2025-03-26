@@ -38,7 +38,6 @@ class RepoImpl(
         return settingsPreferences.getSetting(key, defaultValue)
     }
 
-    // تنفيذ دوال التعامل مع قاعدة البيانات المحلية
     override suspend fun insertFavorite(favoriteLocation: FavoriteLocation) {
         favoriteDao.insertFavorite(favoriteLocation)
     }

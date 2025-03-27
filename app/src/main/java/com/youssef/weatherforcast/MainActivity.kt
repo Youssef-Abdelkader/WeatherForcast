@@ -36,6 +36,7 @@ import com.youssef.weatherforcast.Navigation.BottomNavigationBar
 import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.ui.theme.WeatherForcastTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -61,15 +62,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+
         // Initialize Database and Repositories
         val apiService = RetrofitHelper.service
         val remoteDataSource = RemoteDataSourceImpl.getInstance(apiService)
         val settingsPreferences = SettingsPreferences(this)
+
         val database = AppDatabase.getInstance(applicationContext)
         val favoriteDao = database.favoriteDao()
 
         // Initialize Repo with DAO
         val repo = RepoImpl(remoteDataSource, settingsPreferences, favoriteDao)
+        val lang=settingsPreferences.getSetting("language", "English")
+        Log.d("MainActivity", "Language: $lang")
+        applyLanguage(repo.getLanguageCode(lang))
+
 
         // Initialize ViewModels correctly
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
@@ -162,4 +169,5 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         locationManager.removeUpdates(locationListener)
     }
+   
 }

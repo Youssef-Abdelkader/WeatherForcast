@@ -1,5 +1,6 @@
 package com.youssef.weatherforcast.Favourite
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
 
 import androidx.compose.foundation.layout.*
@@ -43,9 +44,10 @@ import com.youssef.weatherforcast.R
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 
 @Composable
-fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: FavoriteViewModel) {
+fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: FavoriteViewModel,navToHome: (cityName: String,lat:Double,lon:Double) -> Unit) {
     val viewModel: FavoriteViewModel = viewModel(factory = FavoriteFactory(repo))
     val favorites by viewModel.favorites.collectAsState(emptyList())
+
 
     Scaffold(
         floatingActionButton = {
@@ -69,15 +71,15 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
 
             LazyColumn {
                 items(favorites) { location ->
-                    // جلب بيانات الطقس لكل موقع
                     val weatherState = produceState<WeatherResponse?>(initialValue = null) {
                         value = viewModel.getWeather(location.latitude, location.longitude)
                     }
 
                     FavoriteItem(
                         location = location,
-                        weather = weatherState.value, // تمرير بيانات الطقس إلى العنصر
-                        onRemove = { viewModel.removeFavorite(location) }
+                        weather = weatherState.value,
+                        onRemove = { viewModel.removeFavorite(location) },
+                        navToHome
                     )
                 }
             }
@@ -86,11 +88,14 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
 }
 
 @Composable
-fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove: () -> Unit) {
+fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove: () -> Unit,navToHome: (cityName: String,lat:Double,lon:Double) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .padding(vertical = 8.dp, horizontal = 12.dp).clickable {
+                navToHome(location.locationName,location.latitude,location.longitude)
+            },
+
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
@@ -126,7 +131,6 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // ✅ تقليل حجم إحداثيات `Lat` و `Lon`
                     Text(
                         text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude), // ✅ تقليل عدد الأرقام العشرية
                         style = MaterialTheme.typography.bodySmall, // ✅ استخدام خط أصغر
@@ -134,7 +138,6 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // ✅ عرض درجة الحرارة إن وجدت
                     weather?.let {
                         Text(
                             text = "Temp: ${it.main.temp}°C",
@@ -173,7 +176,7 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Remove",
                         tint = Color.White,
-                        modifier = Modifier.size(28.dp) // ✅ تقليل حجم الأيقونة داخل الزر
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

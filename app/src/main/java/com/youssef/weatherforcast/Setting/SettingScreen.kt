@@ -13,15 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.R
+import com.youssef.weatherforcast.utils.restartActivity
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel ) {
-
+    val context= LocalContext.current
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val selectedTemperature by viewModel.selectedTemperature.collectAsState()
     val selectedLocation by viewModel.selectedLocation.collectAsState()
@@ -57,6 +59,7 @@ fun SettingsScreen(viewModel: SettingsViewModel ) {
                         viewModel = viewModel
                     ) {
                         viewModel.updateLanguage(it)
+                        restartActivity(context)
                     }
 
                     // Temperature Unit Setting

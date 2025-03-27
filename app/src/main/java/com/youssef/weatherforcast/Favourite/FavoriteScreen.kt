@@ -72,7 +72,7 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
             LazyColumn {
                 items(favorites) { location ->
                     val weatherState = produceState<WeatherResponse?>(initialValue = null) {
-                        value = viewModel.getWeather(location.latitude, location.longitude)
+                        value = viewModel.getWeatherSafely(location.latitude, location.longitude)
                     }
 
                     FavoriteItem(

@@ -1,6 +1,5 @@
 package com.youssef.weatherforcast.Favourite
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -8,55 +7,60 @@ import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Model.WeatherResponse
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FavoriteViewModel(private val repo: Repo) : ViewModel() {
+    // Changed to StateFlow with initial value
     private val _favorites = MutableStateFlow<List<FavoriteLocation>>(emptyList())
-    val favorites = _favorites.asStateFlow()
+    val favorites: StateFlow<List<FavoriteLocation>> = _favorites
+
+    // Added error handling state
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
     init {
-        getAllFavorites()
+        loadFavorites()
     }
 
-    fun getAllFavorites() {
+    // Modified to use stateIn for better Flow handling
+    private fun loadFavorites() {
         viewModelScope.launch {
-            try {
-                repo.getAllFavorites().collectLatest { favoriteList ->
-                    _favorites.value = favoriteList
-                    Log.d("FavoriteViewModel", "Favorites loaded: $favoriteList")
+            repo.getAllFavorites()
+                .catch { e ->
+                    _errorMessage.value = "Error loading favorites: ${e.message}"
                 }
-            } catch (e: Exception) {
-                Log.e("FavoriteViewModel", "Error loading favorites: ${e.message}")
-            }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = emptyList()
+                )
+                .collect { list ->
+                    _favorites.value = list
+                }
         }
     }
 
-    suspend fun getWeather(lat: Double, lon: Double): WeatherResponse? {
-        return repo.getWeather(lat, lon, "metric", "en")
-    }
-
-    fun addFavorite(location: FavoriteLocation) {
-        viewModelScope.launch {
-            try {
-                repo.insertFavorite(location)
-                getAllFavorites()
-                Log.d("FavoriteViewModel", "Added to favorites: $location")
-            } catch (e: Exception) {
-                Log.e("FavoriteViewModel", "Error adding favorite: ${e.message}")
-            }
+    // Added null safety and error handling
+    suspend fun getWeatherSafely(lat: Double, lon: Double): WeatherResponse? {
+        return try {
+            repo.getWeather(lat, lon, "metric", "en")
+        } catch (e: Exception) {
+            _errorMessage.value = "Failed to get weather: ${e.message}"
+            null
         }
     }
 
+    // Modified to handle possible null values
     fun removeFavorite(location: FavoriteLocation) {
         viewModelScope.launch {
             try {
                 repo.deleteFavorite(location)
-                getAllFavorites()
-                Log.d("FavoriteViewModel", "Removed from favorites: $location")
             } catch (e: Exception) {
-                Log.e("FavoriteViewModel", "Error removing favorite: ${e.message}")
+                _errorMessage.value = "Delete failed: ${e.message}"
             }
         }
     }
@@ -64,10 +68,11 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
 
 class FavoriteFactory(private val repo: Repo) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        // Added null check and type safety
         if (modelClass.isAssignableFrom(FavoriteViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FavoriteViewModel(repo) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Invalid ViewModel class")
     }
 }

@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.youssef.weatherforcast.Data.LocalDataSource.AppDatabase
@@ -111,6 +112,15 @@ class MainActivity : ComponentActivity() {
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
                 val isBottomBarVisible = currentRoute != Screen.Splash.route
+                val repo = RepoImpl(
+                    remoteDataSource = RemoteDataSourceImpl.getInstance(RetrofitHelper.service),
+                    settingsPreferences = SettingsPreferences(this),
+                    favoriteDao = AppDatabase.getInstance(applicationContext).favoriteDao()
+
+                )
+                val favoriteViewModel: FavoriteViewModel = viewModel(
+                    factory = FavoriteFactory(repo)
+                )
 
                 val isConnectedState by isConnected.observeAsState(true)
 
@@ -131,7 +141,7 @@ class MainActivity : ComponentActivity() {
                             navController,
                             repo,
                             homeViewModel,
-                            favoriteViewModel,
+                            favoriteViewModel= favoriteViewModel,
                             settingsViewModel
                         )
 

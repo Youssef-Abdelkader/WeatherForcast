@@ -1,5 +1,4 @@
 package com.youssef.weatherforcast
-
 import SettingsViewModel
 import SettingsViewModelFactory
 import android.Manifest
@@ -73,15 +72,17 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Repo with DAO
         val repo = RepoImpl(remoteDataSource, settingsPreferences, favoriteDao)
-        val lang=settingsPreferences.getSetting("language", "English")
+        val lang = settingsPreferences.getSetting("language", "English")
         Log.d("MainActivity", "Language: $lang")
         applyLanguage(repo.getLanguageCode(lang))
 
 
         // Initialize ViewModels correctly
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
-        favoriteViewModel = ViewModelProvider(this, FavoriteFactory(repo))[FavoriteViewModel::class.java]
-        settingsViewModel = ViewModelProvider(this, SettingsViewModelFactory(repo))[SettingsViewModel::class.java]
+        favoriteViewModel =
+            ViewModelProvider(this, FavoriteFactory(repo))[FavoriteViewModel::class.java]
+        settingsViewModel =
+            ViewModelProvider(this, SettingsViewModelFactory(repo))[SettingsViewModel::class.java]
 
         // Get Location Manager
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -100,7 +101,13 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        AppNavHost(navController, repo, homeViewModel, favoriteViewModel,settingsViewModel)
+                        AppNavHost(
+                            navController,
+                            repo,
+                            homeViewModel,
+                            favoriteViewModel,
+                            settingsViewModel
+                        )
                     }
                 }
             }
@@ -121,6 +128,7 @@ class MainActivity : ComponentActivity() {
                     ) == PackageManager.PERMISSION_GRANTED -> {
                 requestLocationUpdates()
             }
+
             else -> {
                 ActivityCompat.requestPermissions(
                     this,
@@ -169,5 +177,14 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         locationManager.removeUpdates(locationListener)
     }
-   
+
+    private fun applyLanguage(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+
+    }
 }

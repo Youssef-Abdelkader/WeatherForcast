@@ -38,8 +38,10 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
     LaunchedEffect(settingsUpdated) {
         if (settingsUpdated) {
             homeViewModel.reloadSettings()
+            homeViewModel.reloadData()
             settingsViewModel.notifySettingsChanged(false)
         }
+
     }
 
     Box(

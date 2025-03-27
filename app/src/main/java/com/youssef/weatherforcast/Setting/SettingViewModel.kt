@@ -3,6 +3,7 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.youssef.weatherforcast.Model.Repo
+import kotlinx.coroutines.flow.asStateFlow
 
 class SettingsViewModel(private val repo: Repo) : ViewModel() {
     private val _selectedLanguage = MutableStateFlow(repo.getSetting("language", "English"))
@@ -18,7 +19,7 @@ class SettingsViewModel(private val repo: Repo) : ViewModel() {
     val selectedWindSpeed: StateFlow<String> = _selectedWindSpeed
 
     private val _settingsUpdated = MutableStateFlow(false)
-    val settingsUpdated: StateFlow<Boolean> = _settingsUpdated
+    var settingsUpdated: StateFlow<Boolean> = _settingsUpdated.asStateFlow()
 
     fun updateLanguage(language: String) {
         _selectedLanguage.value = language
@@ -44,7 +45,7 @@ class SettingsViewModel(private val repo: Repo) : ViewModel() {
         notifySettingsChanged()
     }
 
-    fun notifySettingsChanged(updated: Boolean = true) {
+    fun notifySettingsChanged(updated: Boolean = false) {
         _settingsUpdated.value = updated
     }
     // In your settings screen/viewmodel:

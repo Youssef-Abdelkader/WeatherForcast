@@ -1,5 +1,7 @@
 package com.youssef.weatherforcast
 
+import SettingsViewModel
+import SettingsViewModelFactory
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -36,8 +38,10 @@ import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.ui.theme.WeatherForcastTheme
 
 class MainActivity : ComponentActivity() {
+
     private lateinit var locationManager: LocationManager
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var favoriteViewModel: FavoriteViewModel
     private val REQUEST_LOCATION_PERMISSION = 1001
 
@@ -70,6 +74,7 @@ class MainActivity : ComponentActivity() {
         // Initialize ViewModels correctly
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
         favoriteViewModel = ViewModelProvider(this, FavoriteFactory(repo))[FavoriteViewModel::class.java]
+        settingsViewModel = ViewModelProvider(this, SettingsViewModelFactory(repo))[SettingsViewModel::class.java]
 
         // Get Location Manager
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -88,7 +93,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        AppNavHost(navController, repo, homeViewModel, favoriteViewModel)
+                        AppNavHost(navController, repo, homeViewModel, favoriteViewModel,settingsViewModel)
                     }
                 }
             }

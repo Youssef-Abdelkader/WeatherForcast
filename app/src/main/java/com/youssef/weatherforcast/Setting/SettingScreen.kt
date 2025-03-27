@@ -20,8 +20,7 @@ import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.R
 
 @Composable
-fun SettingsScreen(repo: Repo) {
-    val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(repo))
+fun SettingsScreen(viewModel: SettingsViewModel ) {
 
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val selectedTemperature by viewModel.selectedTemperature.collectAsState()
@@ -54,7 +53,8 @@ fun SettingsScreen(repo: Repo) {
                         title = "Language",
                         iconRes = R.drawable.langauge,
                         options = listOf("Arabic", "English"),
-                        selectedOption = selectedLanguage
+                        selectedOption = selectedLanguage,
+                        viewModel = viewModel
                     ) {
                         viewModel.updateLanguage(it)
                     }
@@ -64,7 +64,9 @@ fun SettingsScreen(repo: Repo) {
                         title = "Temperature Unit",
                         iconRes = R.drawable.tempreture,
                         options = listOf("Celsius", "Fahrenheit", "Kelvin"),
-                        selectedOption = selectedTemperature
+                        selectedOption = selectedTemperature,
+                        viewModel = viewModel
+
                     ) {
                         viewModel.updateTemperature(it)
                     }
@@ -74,7 +76,9 @@ fun SettingsScreen(repo: Repo) {
                         title = "Location",
                         iconRes = R.drawable.location,
                         options = listOf("GPS", "Map"),
-                        selectedOption = selectedLocation
+                        selectedOption = selectedLocation,
+                        viewModel = viewModel
+
                     ) {
                         viewModel.updateLocation(it)
                     }
@@ -84,7 +88,9 @@ fun SettingsScreen(repo: Repo) {
                         title = "Wind Speed",
                         iconRes = R.drawable.wind,
                         options = listOf("Meter/sec", "Mile/hour"),
-                        selectedOption = selectedWindSpeed
+                        selectedOption = selectedWindSpeed,
+                        viewModel = viewModel
+
                     ) {
                         viewModel.updateWindSpeed(it)
                     }
@@ -98,6 +104,7 @@ fun SettingOption(
     iconRes: Int,
     options: List<String>,
     selectedOption: String,
+    viewModel: SettingsViewModel,
     onOptionSelected: (String) -> Unit
 ) {
     Card(
@@ -134,7 +141,9 @@ fun SettingOption(
                     ChoiceChip(
                         text = option,
                         isSelected = option == selectedOption,
-                        onClick = { onOptionSelected(option) }
+                        onClick = { onOptionSelected(option)
+                        viewModel.notifySettingsChanged(true)
+                        }
                     )
                 }
             }

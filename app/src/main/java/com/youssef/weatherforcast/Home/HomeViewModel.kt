@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private var repository: Repo) : ViewModel() {
+    private var _lat = MutableStateFlow<Double?>(null)
+    private var _lon = MutableStateFlow<Double?>(null)
+
     private var _weather = MutableStateFlow<WeatherResponse?>(null)
     val weather = _weather.asStateFlow()
 
@@ -69,10 +72,18 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
 
     fun loadWeatherAndForecast(lat: Double, lon: Double) {
         Log.d("HomeViewModel", "Loading data for coordinates: ($lat, $lon)")
+        _lat.value = lat
+        _lon.value = lon
         getWeather(lat, lon)
         getForecast(lat, lon)
     }
-
+    fun reloadData() {
+        _lat.value?.let { lat ->
+            _lon.value?.let { lon ->
+                loadWeatherAndForecast(lat, lon)
+            }
+        }
+    }
     fun convertTemperature(temp: Double, unit: String): Double {
         return when (unit) {
             "Celsius" -> temp - 273.15

@@ -30,7 +30,7 @@ fun SplashScreen(navController: NavController) {
     }
 
     LaunchedEffect(progress) {
-        Log.d("tagdata", "Splash progress: $progress") // ✅ تأكد إن progress بيتغير
+      //  Log.d("tagdata", "Splash progress: $progress") // ✅ تأكد إن progress بيتغير
         if (progress == 1f) {
             Log.d("tagdata", "Navigating to HomeScreen") // ✅ تأكد إن `navigate` بيشتغل
             navController.navigate(Screen.Home.route) {

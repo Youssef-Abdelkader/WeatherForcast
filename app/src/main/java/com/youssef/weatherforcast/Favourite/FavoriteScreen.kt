@@ -156,7 +156,7 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                         painter = painterResource(id = iconRes),
                         contentDescription = "Weather Icon",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(50.dp) // ✅ تقليل حجم الأيقونة قليلاً
+                        modifier = Modifier.size(50.dp) 
                     )
                 }
 

@@ -1,9 +1,11 @@
 package com.youssef.weatherforcast.Favourite
 
+import android.location.Geocoder
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,16 +42,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun MapScreen(navController: NavController, repo: Repo) {
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     val context = LocalContext.current
-    val MapScreenViewModel: MapScreenViewModel = viewModel(factory = MapScreenViewModelFactory(repo))
-    val insertState by MapScreenViewModel.insertState.collectAsStateWithLifecycle()
-    // Initialize Places API
+    val mapScreenViewModel: MapScreenViewModel = viewModel(factory = MapScreenViewModelFactory(repo))
+    val insertState by mapScreenViewModel.insertState.collectAsStateWithLifecycle()
+
     Places.initializeWithNewPlacesApiEnabled(context, Constants.GeoApi)
     val placesClient = Places.createClient(context)
 
@@ -66,17 +68,21 @@ fun MapScreen(navController: NavController, repo: Repo) {
         if (insertState == true) {
             Toast.makeText(context, "Location saved successfully", Toast.LENGTH_SHORT).show()
             navController.popBackStack()
-        }
-        else if (insertState == false) {
+        } else if (insertState == false) {
             Toast.makeText(context, "Error saving location", Toast.LENGTH_SHORT).show()
         }
     }
 
-
-
-
-
-
+    fun getCountryFromLatLng(lat: Double, lon: Double): String {
+        return try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            val addresses = geocoder.getFromLocation(lat, lon, 1)
+            addresses?.firstOrNull()?.countryName ?: "Unknown Location"
+        } catch (e: Exception) {
+            Log.e("MapScreen", "Error getting country: ${e.message}")
+            "Unknown Location"
+        }
+    }
 
     LaunchedEffect(searchTextFlow) {
         searchTextFlow.debounce(300.milliseconds).collect { query ->
@@ -97,61 +103,76 @@ fun MapScreen(navController: NavController, repo: Repo) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { selectedLocation?.let {
-                    MapScreenViewModel.insertFavoriteLocation(lat = it.latitude, lon = it.longitude, name = searchText, context)
-                    } },
+                onClick = {
+                    selectedLocation?.let {
+                        mapScreenViewModel.insertFavoriteLocation(
+                            lat = it.latitude,
+                            lon = it.longitude,
+                            name = searchText,
+                            context = context
+                        )
+                    }
+                },
                 modifier = Modifier.padding(16.dp)
             ) {
                 Icon(Icons.Default.Favorite, "Select Location")
             }
         }
     ) { paddingValues ->
-        GoogleMap(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            cameraPositionState = cameraPositionState,
-            onMapClick = { selectedLocation = it }
-        ) {
-            selectedLocation?.let {
-                Marker(state = MarkerState(it), title = "Selected Location")
-            }
-        }
-
-        PlacesAutocompleteTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            searchText = searchText,
-            predictions = predictions.map { it.toPlaceDetails() },
-            onQueryChanged = { query ->
-                searchText = query
-                searchTextFlow.value = query
-            },
-            onSelected = { autocompletePlace ->
-                predictions = emptyList()
-                searchText = autocompletePlace.primaryText.toString()
-                coroutineScope.launch {
-                    try {
-                        val request = FetchPlaceRequest.newInstance(
-                            autocompletePlace.placeId,
-                            listOf(Place.Field.LAT_LNG)
-                        )
-                        val response = placesClient.fetchPlace(request).await()
-                        response.place.latLng?.let { latLng ->
-                            selectedLocation = latLng
-                            cameraPositionState.move(
-                                CameraUpdateFactory.newLatLngZoom(latLng, 12f)
-                            )
-                        }
-                    } catch (e: Exception) {
-                        Log.e("MapScreen", "Error fetching place: ${e.message}")
-                    }
+        Box(modifier = Modifier.fillMaxSize()) {
+            GoogleMap(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                cameraPositionState = cameraPositionState,
+                onMapClick = { latLng ->
+                    selectedLocation = latLng
+                    searchText = getCountryFromLatLng(latLng.latitude, latLng.longitude) // ✅ تحديث `searchText` باسم الدولة
+                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(latLng, 10f)) // ✅ تحريك الكاميرا إلى الموقع
+                }
+            ) {
+                selectedLocation?.let {
+                    Marker(state = MarkerState(it), title = searchText)
                 }
             }
-        )
+
+            PlacesAutocompleteTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                searchText = searchText,
+                predictions = predictions.map { it.toPlaceDetails() },
+                onQueryChanged = { query ->
+                    searchText = query
+                    searchTextFlow.value = query
+                },
+                onSelected = { autocompletePlace ->
+                    predictions = emptyList()
+                    searchText = autocompletePlace.primaryText.toString()
+                    coroutineScope.launch {
+                        try {
+                            val request = FetchPlaceRequest.newInstance(
+                                autocompletePlace.placeId,
+                                listOf(Place.Field.LAT_LNG)
+                            )
+                            val response = placesClient.fetchPlace(request).await()
+                            response.place.latLng?.let { latLng ->
+                                selectedLocation = latLng
+                                cameraPositionState.move(
+                                    CameraUpdateFactory.newLatLngZoom(latLng, 12f)
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Log.e("MapScreen", "Error fetching place: ${e.message}")
+                        }
+                    }
+                }
+            )
+        }
     }
 }
+
+
 data class AutocompletePlace(
     val placeId: String,
     val primaryText: String,

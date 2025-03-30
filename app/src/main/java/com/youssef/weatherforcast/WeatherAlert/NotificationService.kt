@@ -1,18 +1,12 @@
 package com.youssef.weatherforcast.WeatherAlert
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import android.app.*
+import android.content.*
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
-
 import androidx.core.app.NotificationCompat
+import com.youssef.weatherforcast.MainActivity
 import com.youssef.weatherforcast.R
 
 class NotificationService : Service() {
@@ -44,11 +38,27 @@ class NotificationService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Intent عند الضغط على الإشعار لفتح MainActivity
+        val contentIntent = PendingIntent.getActivity(
+            this,
+            alertId,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, "weather_alerts")
             .setContentTitle("Weather Alert")
             .setContentText("Active weather alert!")
             .setSmallIcon(R.drawable.alert)
-            .setSound(if (alertType == AlertType.ALARM_SOUND) Settings.System.DEFAULT_ALARM_ALERT_URI else null)
+            .setContentIntent(contentIntent) // لجعل الضغط على الإشعار يفتح MainActivity
+            .setSound(when(alertType) {
+                AlertType.ALARM_SOUND -> Settings.System.DEFAULT_ALARM_ALERT_URI
+                AlertType.NOTIFICATION -> null
+                AlertType.ALARM -> Settings.System.DEFAULT_NOTIFICATION_URI
+            })
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true) // لجعل الإشعار يختفي عند الضغط عليه
             .addAction(R.drawable.stop, "Stop", stopPendingIntent)
             .build()
     }
@@ -68,13 +78,13 @@ class NotificationService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
-
 class StopReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val alertId = intent.getIntExtra("alert_id", 0)
         val serviceIntent = Intent(context, NotificationService::class.java)
         context.stopService(serviceIntent)
 
+        // Use application context to avoid memory leaks
         WeatherAlertsViewModel(context.applicationContext)
             .cancelAlert(alertId)
     }

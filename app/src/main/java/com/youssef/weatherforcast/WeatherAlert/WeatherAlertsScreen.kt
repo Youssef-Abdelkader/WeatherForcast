@@ -1,3 +1,5 @@
+package com.youssef.weatherforcast.WeatherAlert
+
 import android.app.TimePickerDialog
 import android.content.Context
 import androidx.compose.foundation.Image
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,31 +20,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.util.Calendar
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.youssef.weatherforcast.R
+import java.util.Calendar
 
 @Composable
-fun WeatherAlertScreen() {
+fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
     val context = LocalContext.current
+    val viewModel: WeatherAlertsViewModel = viewModel(
+        factory = WeatherAlertsViewModelFactory(context)
+    )
     var startDuration by remember { mutableStateOf("") }
     var endDuration by remember { mutableStateOf("") }
     var selectedOption by remember { mutableStateOf("Alarm") }
+    var alertId by remember { mutableStateOf<Int?>(null) } // تخزين alertId عند الإنشاء
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A1E)), // Dark background
+            .background(Color(0xFF0A0A1E)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Warning icon
         Image(
             painter = painterResource(id = R.drawable.alert),
             contentDescription = "Warning Icon",
             modifier = Modifier.size(100.dp)
         )
 
-        // No alarms text
         Text(
             text = "You haven't any alarms",
             color = Color.White,
@@ -52,7 +56,6 @@ fun WeatherAlertScreen() {
             modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
         )
 
-        // Card for input fields
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,120 +65,45 @@ fun WeatherAlertScreen() {
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A3A))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // Start duration field
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showTimePicker(context) { startDuration = it } }
-                ) {
-                    OutlinedTextField(
-                        value = startDuration,
-                        onValueChange = {},
-                        label = { Text("Start duration", color = Color.Black) },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Check, contentDescription = "Start Time", tint = Color.Black)
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,  // لون الخلفية عند التركيز
-                            unfocusedContainerColor = Color.White, // لون الخلفية عند عدم التركيز
-                            disabledContainerColor = Color.White, // لون الخلفية عند التعطيل
-                            focusedTextColor = Color.White, // لون النص عند التركيز
-                            unfocusedTextColor = Color.White, // لون النص عند عدم التركيز
-                            disabledTextColor = Color.White, // لون النص عند التعطيل
-                            focusedIndicatorColor = Color.White, // لون الحد عند التركيز
-                            unfocusedIndicatorColor = Color.White // لون الحد عند عدم التركيز
-                        ),
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-
-                }
+                TimePickerField(label = "Start duration", value = startDuration) { startDuration = it }
+                Spacer(modifier = Modifier.height(12.dp))
+                TimePickerField(label = "End duration", value = endDuration) { endDuration = it }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // End duration field
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showTimePicker(context) { endDuration = it } }
-                ) {
-                    OutlinedTextField(
-                        value = startDuration,
-                        onValueChange = {},
-                        label = { Text("Start duration", color = Color.Black) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = "Start Time",
-                                tint = Color.Black
-                            )
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,  // لون الخلفية عند التركيز
-                            unfocusedContainerColor = Color.White, // لون الخلفية عند عدم التركيز
-                            disabledContainerColor = Color.White, // لون الخلفية عند التعطيل
-                            focusedTextColor = Color.White, // لون النص عند التركيز
-                            unfocusedTextColor = Color.White, // لون النص عند عدم التركيز
-                            disabledTextColor = Color.White, // لون النص عند التعطيل
-                            focusedIndicatorColor = Color.White, // لون الحد عند التركيز
-                            unfocusedIndicatorColor = Color.White // لون الحد عند عدم التركيز
-                        ),
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Notification type selection
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Notify me by", color = Color.White, fontSize = 14.sp)
-
                     Spacer(modifier = Modifier.width(16.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedOption = "Alarm" }
-                    ) {
-                        RadioButton(
-                            selected = selectedOption == "Alarm",
-                            onClick = { selectedOption = "Alarm" },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Cyan)
-                        )
-                        Text("Alarm", color = Color.White)
-                    }
-
+                    NotificationOption("Alarm", selectedOption) { selectedOption = it }
                     Spacer(modifier = Modifier.width(16.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedOption = "Notification" }
-                    ) {
-                        RadioButton(
-                            selected = selectedOption == "Notification",
-                            onClick = { selectedOption = "Notification" },
-                            colors = RadioButtonDefaults.colors(selectedColor = Color.Cyan)
-                        )
-                        Text("Notification", color = Color.White)
-                    }
+                    NotificationOption("Notification", selectedOption) { selectedOption = it }
                 }
             }
         }
 
-        // Buttons Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Save button
             Button(
-                onClick = { /* Save action */ },
+                onClick = {
+                    val newAlertId = System.currentTimeMillis().toInt()
+                    alertId = newAlertId // تخزين معرف التنبيه عند الإنشاء
+
+                    val alert = WeatherAlert(
+                        id = newAlertId,
+                        type = if (selectedOption == "Alarm") AlertType.ALARM else AlertType.NOTIFICATION,
+                        message = "Weather Alert",
+                        startTime = startDuration,
+                        endTime = endDuration
+                    )
+                    viewModel.scheduleAlert(alert)
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                 modifier = Modifier.weight(1f)
             ) {
@@ -184,9 +112,8 @@ fun WeatherAlertScreen() {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Cancel button
             Button(
-                onClick = { /* Cancel action */ },
+                onClick = { alertId?.let { viewModel.cancelAlert(it) } },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                 modifier = Modifier.weight(1f)
             ) {
@@ -196,7 +123,53 @@ fun WeatherAlertScreen() {
     }
 }
 
-// Function to show Time Picker Dialog
+@Composable
+fun TimePickerField(label: String, value: String, onTimeSelected: (String) -> Unit) {
+    val context = LocalContext.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showTimePicker(context, onTimeSelected) }
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            label = { Text(label, color = Color.Black) },
+            leadingIcon = {
+                Icon(Icons.Filled.Check, contentDescription = "Time Picker", tint = Color.Black)
+            },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                disabledTextColor = Color.Black,
+                focusedIndicatorColor = Color.Black,
+                unfocusedIndicatorColor = Color.Black
+            ),
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun NotificationOption(option: String, selectedOption: String, onOptionSelected: (String) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable { onOptionSelected(option) }
+    ) {
+        RadioButton(
+            selected = selectedOption == option,
+            onClick = { onOptionSelected(option) },
+            colors = RadioButtonDefaults.colors(selectedColor = Color.Cyan)
+        )
+        Text(option, color = Color.White)
+    }
+}
+
 fun showTimePicker(context: Context, onTimeSelected: (String) -> Unit) {
     val calendar = Calendar.getInstance()
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -206,7 +179,7 @@ fun showTimePicker(context: Context, onTimeSelected: (String) -> Unit) {
         context,
         { _, selectedHour, selectedMinute ->
             val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
-            onTimeSelected(formattedTime) // تحديث القيمة مباشرةً في الحقل
+            onTimeSelected(formattedTime)
         },
         hour,
         minute,

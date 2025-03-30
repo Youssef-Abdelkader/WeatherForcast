@@ -1,8 +1,8 @@
 package com.youssef.weatherforcast.Navigation
 
 import SettingsViewModel
-import WeatherAlertScreen
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,6 +14,8 @@ import com.youssef.weatherforcast.Home.HomeScreen
 import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
+import com.youssef.weatherforcast.WeatherAlert.WeatherAlertScreen
+import com.youssef.weatherforcast.WeatherAlert.WeatherAlertsViewModel
 
 @Composable
 fun AppNavHost(
@@ -37,7 +39,12 @@ fun AppNavHost(
                 navController.navigate("detailed_screen/$cityName/$lat/$lon")
             }
         }
-        composable(Screen.Alerts.route) { WeatherAlertScreen() }
+        composable(Screen.Alerts.route) {
+            val context = LocalContext.current
+            WeatherAlertScreen(
+                viewModel = WeatherAlertsViewModel(context.applicationContext)
+            )
+        }
 
         // Fixed composable definition (no parameter duplication)
         composable(Screen.Detailed.route) { backStackEntry ->

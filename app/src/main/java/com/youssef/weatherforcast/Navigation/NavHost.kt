@@ -13,6 +13,7 @@ import com.youssef.weatherforcast.Home.HomeScreen
 import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
+import com.youssef.weatherforcast.ui.screens.WeatherAlertScreen
 
 @Composable
 fun AppNavHost(
@@ -36,7 +37,7 @@ fun AppNavHost(
                 navController.navigate("detailed_screen/$cityName/$lat/$lon")
             }
         }
-        composable(Screen.Alerts.route) { AlertsScreen() }
+        composable(Screen.Alerts.route) { WeatherAlertScreen() }
 
         // Fixed composable definition (no parameter duplication)
         composable(Screen.Detailed.route) { backStackEntry ->

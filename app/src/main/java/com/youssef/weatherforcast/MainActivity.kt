@@ -1,16 +1,19 @@
 package com.youssef.weatherforcast
-
 import SettingsViewModel
 import SettingsViewModelFactory
 import android.Manifest
+import android.app.AlarmManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -85,6 +88,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent) // يفتح إعدادات التطبيق للسماح بالجدولة الدقيقة
+            }
+        }
+
+
+
 
         // Initialize dependencies
         val apiService = RetrofitHelper.service
@@ -98,7 +111,6 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "Language: $lang")
         applyLanguage(repo.getLanguageCode(lang))
 
-        // Initialize ViewModels
         homeViewModel = ViewModelProvider(this, WeatherFactory(repo))[HomeViewModel::class.java]
         favoriteViewModel = ViewModelProvider(this, FavoriteFactory(repo))[FavoriteViewModel::class.java]
         settingsViewModel = ViewModelProvider(this, SettingsViewModelFactory(repo))[SettingsViewModel::class.java]
@@ -136,7 +148,6 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                             .fillMaxSize()
                     ) {
-                        // Main app content
                         AppNavHost(
                             navController,
                             repo,
@@ -145,7 +156,6 @@ class MainActivity : ComponentActivity() {
                             settingsViewModel
                         )
 
-                        // Network error overlay (only on specific screens)
                         if (!isConnectedState && isUnavailableScreen(currentRoute)) {
                             Surface(
                                 color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),

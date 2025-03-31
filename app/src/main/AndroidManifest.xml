@@ -12,8 +12,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <application
         android:allowBackup="true"
@@ -28,7 +29,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBOUARS9tF_9x35RGAFSu0RjkCilCrOwlw" />
+            android:value="AIzaSyCaj10hgcwGaosoYRyv79ppLviFJ9eMNmM" />
 
         <activity
             android:name=".MainActivity"
@@ -40,6 +41,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".WeatherAlert.MyAlarm"
+            android:enabled="true"
+            android:exported="true"/>
 
         <service
             android:name=".WeatherAlert.NotificationService"

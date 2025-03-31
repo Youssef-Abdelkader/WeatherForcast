@@ -5,6 +5,7 @@ import com.youssef.weatherforcast.Data.LocalDataSource.FavoriteDao
 import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Setting.SettingsPreferences
+import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 
 class RepoImpl(
@@ -62,4 +63,17 @@ class RepoImpl(
     override fun getAllFavorites(): Flow<List<FavoriteLocation>> {
         return favoriteDao.getAllFavorites()
     }
+
+    override suspend fun insertAlert(weatherAlert: WeatherAlert) {
+        favoriteDao.insertAlert(weatherAlert)
+    }
+
+    override suspend fun deleteAlert(weatherAlert: WeatherAlert) {
+        favoriteDao.deleteAlert(weatherAlert)
+    }
+
+    override fun getAllAlerts(): Flow<List<WeatherAlert>> {
+        return favoriteDao.getAllAlerts()
+    }
 }
+

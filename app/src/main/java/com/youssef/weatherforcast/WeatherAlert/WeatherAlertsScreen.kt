@@ -102,7 +102,8 @@ fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
                         },
                         message = "Weather Alert",
                         startTime = startTime,
-                        endTime = endTime
+                        endTime = endTime,
+                        timestamp = System.currentTimeMillis()
                     )
                     viewModel.scheduleAlert(alert)
                 },

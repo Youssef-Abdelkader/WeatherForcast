@@ -93,9 +93,10 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
         }
     }
 
-    fun formatTemperature(temp: Double): String {
-        return String.format("%.2f", temp)
+    fun formatTemperature(temp: Double): Int {
+        return Math.round(temp).toInt()
     }
+
 
     // Add this function to handle manual location updates
     fun updateManualLocation(lat: Double, lon: Double) {

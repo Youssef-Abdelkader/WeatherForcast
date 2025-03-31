@@ -30,10 +30,10 @@ fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
     val viewModel: WeatherAlertsViewModel = viewModel(
         factory = WeatherAlertsViewModelFactory(context)
     )
-    var startDuration by remember { mutableStateOf("") }
-    var endDuration by remember { mutableStateOf("") }
+        var startTime by remember { mutableStateOf("") }
+    var endTime by remember { mutableStateOf("") }
     var selectedOption by remember { mutableStateOf("Alarm") }
-    var alertId by remember { mutableStateOf<Int?>(null) } // تخزين alertId عند الإنشاء
+    var alertId by remember { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = Modifier
@@ -65,9 +65,9 @@ fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A3A))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                TimePickerField(label = "Start duration", value = startDuration) { startDuration = it }
+                TimePickerField(label = "Start Time", value = startTime) { startTime = it }
                 Spacer(modifier = Modifier.height(12.dp))
-                TimePickerField(label = "End duration", value = endDuration) { endDuration = it }
+                TimePickerField(label = "End Time", value = endTime) { endTime = it }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -93,14 +93,16 @@ fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
             Button(
                 onClick = {
                     val newAlertId = System.currentTimeMillis().toInt()
-                    alertId = newAlertId // تخزين معرف التنبيه عند الإنشاء
-
+                    alertId = newAlertId
                     val alert = WeatherAlert(
                         id = newAlertId,
-                        type = if (selectedOption == "Alarm") AlertType.ALARM else AlertType.NOTIFICATION,
+                        type = when (selectedOption) {
+                            "Alarm" -> AlertType.ALARM_SOUND
+                            else -> AlertType.NOTIFICATION
+                        },
                         message = "Weather Alert",
-                        startTime = startDuration,
-                        endTime = endDuration
+                        startTime = startTime,
+                        endTime = endTime
                     )
                     viewModel.scheduleAlert(alert)
                 },
@@ -113,7 +115,14 @@ fun WeatherAlertScreen(viewModel: WeatherAlertsViewModel = viewModel()) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Button(
-                onClick = { alertId?.let { viewModel.cancelAlert(it) } },
+                onClick = {
+                    alertId?.let { viewModel.cancelAlert(it) }
+                    // Clear all fields and reset
+                    startTime = ""
+                    endTime = ""
+                    selectedOption = "Alarm"
+                    alertId = null
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                 modifier = Modifier.weight(1f)
             ) {

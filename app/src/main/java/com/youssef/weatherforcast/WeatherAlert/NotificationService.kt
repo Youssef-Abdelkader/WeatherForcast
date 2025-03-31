@@ -62,7 +62,6 @@ class NotificationService : Service() {
             .addAction(R.drawable.stop, "Stop", stopPendingIntent)
             .build()
     }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -71,11 +70,15 @@ class NotificationService : Service() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Weather alerts channel"
+                enableVibration(true)
+                setSound(
+                    Settings.System.DEFAULT_ALARM_ALERT_URI,
+                    Notification.AUDIO_ATTRIBUTES_DEFAULT
+                )
             }
             notificationManager.createNotificationChannel(channel)
         }
     }
-
     override fun onBind(intent: Intent?): IBinder? = null
 }
 class StopReceiver : BroadcastReceiver() {

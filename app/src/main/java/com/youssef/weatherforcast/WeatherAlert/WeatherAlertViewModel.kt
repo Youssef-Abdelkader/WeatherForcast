@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import java.util.Calendar
+import java.util.Date
+import kotlin.random.Random
 
 class WeatherAlertsViewModel(private val context: Context) : ViewModel() {
 
@@ -16,8 +18,12 @@ class WeatherAlertsViewModel(private val context: Context) : ViewModel() {
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     }
     fun scheduleAlert(alert: WeatherAlert) {
-        val startTimeMillis = parseTimeToMillis(alert.startTime) ?: return
-        val endTimeMillis = alert.endTime?.let { parseTimeToMillis(it) }
+        val startTimeMillis = parseTimeToMillis(alert.startTime) ?: run {
+            Log.e("WeatherAlertsViewModel", "Invalid start time: ${alert.startTime}")
+            return
+        }
+
+        Log.d("WeatherAlertsViewModel", "Scheduling alert: ${alert.id} at ${Date(startTimeMillis)}")
 
         val intent = Intent(context, AlertReceiver::class.java).apply {
             putExtra("alert_id", alert.id)
@@ -27,7 +33,7 @@ class WeatherAlertsViewModel(private val context: Context) : ViewModel() {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alert.id,
+            alert.id, // Use alert ID instead of random number
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -54,24 +60,31 @@ class WeatherAlertsViewModel(private val context: Context) : ViewModel() {
             Log.e("WeatherAlertsViewModel", "SecurityException: ${e.message}")
         }
 
-        endTimeMillis?.let { endTime ->
-            val cancelIntent = Intent(context, StopReceiver::class.java).apply {
-                putExtra("alert_id", alert.id)
-            }
-            val cancelPendingIntent = PendingIntent.getBroadcast(
-                context,
-                alert.id,
-                cancelIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        // جدولة إيقاف التنبيه عند نهاية الوقت إذا كان محددًا
+        alert.endTime?.let {
+            val endTimeMillis = parseTimeToMillis(it)
+            if (endTimeMillis != null) {
+                val cancelIntent = Intent(context, StopReceiver::class.java).apply {
+                    putExtra("alert_id", alert.id)
+                }
+                val cancelPendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    alert.id,  // استخدم نفس alert.id لتحديد PendingIntent الفريد
+                    cancelIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
 
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                endTime,
-                cancelPendingIntent
-            )
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    endTimeMillis,
+                    cancelPendingIntent
+                )
+            } else {
+                Log.e("WeatherAlertsViewModel", "Invalid end time: ${alert.endTime}")
+            }
         }
     }
+
 
     private fun parseTimeToMillis(time: String): Long? {
         val parts = time.split(":")
@@ -83,13 +96,15 @@ class WeatherAlertsViewModel(private val context: Context) : ViewModel() {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
-            if (time < String.format("%02d:%02d", get(Calendar.HOUR_OF_DAY), get(Calendar.MINUTE))) {
-                add(Calendar.DAY_OF_MONTH, 1) // تأجيل التنبيه لليوم التالي إذا كان الوقت قد مضى اليوم
+            set(Calendar.MILLISECOND, 0)
+
+            // Correct time comparison
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_MONTH, 1)
             }
         }
         return calendar.timeInMillis
     }
-
 
     fun cancelAlert(alertId: Int) {
         val intent = Intent(context, AlertReceiver::class.java)

@@ -6,9 +6,11 @@ import android.content.Intent
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.core.content.ContextCompat
 class AlertReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("AlertReceiver", "Alarm triggered! ${intent.extras}")
         val alertId = intent.getIntExtra("alert_id", 0)
         val alertType = AlertType.valueOf(
             intent.getStringExtra("alert_type") ?: AlertType.NOTIFICATION.name
@@ -23,8 +25,9 @@ class AlertReceiver : BroadcastReceiver() {
         }
         ContextCompat.startForegroundService(context, serviceIntent)
 
-        // If it's an alarm type, consider adding vibration
-        if (alertType == AlertType.ALARM) {
+        if (alertType == AlertType.ALARM_SOUND) {
+            Log.d("AlertReceiver", "Starting vibration")
+
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(500, 1000), 0))

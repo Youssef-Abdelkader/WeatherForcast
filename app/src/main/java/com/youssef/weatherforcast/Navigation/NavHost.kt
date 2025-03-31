@@ -4,6 +4,8 @@ import SettingsViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -44,9 +46,18 @@ fun AppNavHost(
             }
         }
         composable(Screen.Alerts.route) {
-            AlertScreenMain()
-
+            val weatherState by homeViewModel.weather.collectAsState()
+            val units by homeViewModel.units.collectAsState()
+            weatherState?.let { weather ->
+                AlertScreenMain(
+                    weatherResponse = weather,
+                    units = units,
+                    homeViewModel = homeViewModel
+                )
+            }
         }
+
+
 
         // Fixed composable definition (no parameter duplication)
         composable(Screen.Detailed.route) { backStackEntry ->

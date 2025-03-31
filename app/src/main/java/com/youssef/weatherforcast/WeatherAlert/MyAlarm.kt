@@ -12,47 +12,43 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.youssef.weatherforcast.R
 
-
 class MyAlarm : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        try {
-            showNotification(context, "Weather Cast Notification", "Alarm Fired!")
-        } catch (ex: Exception) {
-            Log.d("Receive Ex", "onReceive: ${ex.printStackTrace()}")
+
+
+        override fun onReceive(context: Context, intent: Intent) {
+            val temperature = intent.getStringExtra("TEMP_VALUE") ?: "N/A"
+            val message = "Current temperature: $temperature"
+            showNotification(context, "Weather Alert", message)
         }
     }
-}
 
-private fun showNotification(context: Context, title: String, desc: String) {
-    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    val channelId = "alarm_cفثhannel"
-    val channelName = "Alarm Notifications"
+    private fun showNotification(context: Context, title: String, desc: String) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "alarm_channel"
+        val channelName = "Alarm Notifications"
 
-    // Set the default alarm sound
-    val soundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        // Set the default alarm sound
+        val soundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            channelId,
-            channelName,
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            setSound(soundUri, null)
-            enableVibration(true) // Enable vibration if needed
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                setSound(soundUri, null)
+                enableVibration(true)
+            }
+            manager.createNotificationChannel(channel)
         }
-        manager.createNotificationChannel(channel)
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setContentTitle(title)
+            .setContentText(desc)  // Shows temperature message
+            .setSmallIcon(R.drawable.alert)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
+
+        manager.notify(1, builder.build())
     }
-
-    val builder = NotificationCompat.Builder(context, channelId)
-        .setContentTitle(title)
-        .setContentText(desc)
-        .setSmallIcon(R.drawable.alert)
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
-        .setSound(soundUri) // Set the sound for older versions (pre-Oreo)
-
-    manager.notify(1, builder.build())
-}
-
-
-
 

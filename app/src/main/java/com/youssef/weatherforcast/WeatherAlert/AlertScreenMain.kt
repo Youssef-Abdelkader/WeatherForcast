@@ -21,6 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.youssef.weatherforcast.Home.HomeViewModel
+import com.youssef.weatherforcast.Model.ForecastResponse
+import com.youssef.weatherforcast.Model.WeatherResponse
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -29,10 +32,24 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-@Preview(showSystemUi = true)
-fun AlertScreenMain() {
+fun AlertScreenMain(
+    weatherResponse: WeatherResponse,
+    units: String,
+    homeViewModel: HomeViewModel
+) {
     var showDatePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Convert temperature using HomeViewModel's logic
+    val convertedTemp = homeViewModel.convertTemperature(weatherResponse.main.temp, units)
+    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    val unitSymbol = when (units) {
+        "Celsius" -> "C"
+        "Fahrenheit" -> "F"
+        "Kelvin" -> "K"
+        else -> "C"
+    }
+    val temperatureText = "$formattedTemp°$unitSymbol"
 
     Scaffold(
         topBar = {
@@ -81,15 +98,21 @@ fun AlertScreenMain() {
         }
 
         if (showDatePicker) {
-            DateAndTimePickerExample(onDismiss = { showDatePicker = false }, context = context)
+            DateAndTimePickerExample(
+                onDismiss = { showDatePicker = false },
+                context = context,
+                temperature = temperatureText
+            )
         }
     }
 }
 
 @SuppressLint("ScheduleExactAlarm")
-private fun setAlarm(context: Context, time: Long) {
+private fun setAlarm(context: Context, time: Long, temperature: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val intent = Intent(context, MyAlarm::class.java)
+    val intent = Intent(context, MyAlarm::class.java).apply {
+        putExtra("TEMP_VALUE", temperature)
+    }
 
     val pendingIntent = PendingIntent.getBroadcast(
         context,
@@ -106,14 +129,14 @@ private fun setAlarm(context: Context, time: Long) {
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateAndTimePickerExample(onDismiss: () -> Unit, context: Context) {
+fun DateAndTimePickerExample(
+    onDismiss: () -> Unit,
+    context: Context,
+    temperature: String
+) {
     var showTimePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf(LocalTime.now()) }
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
-    )
 
     val formattedDate = selectedDate.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
     val formattedTime = selectedTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
@@ -153,7 +176,7 @@ fun DateAndTimePickerExample(onDismiss: () -> Unit, context: Context) {
                                 showTimePicker = false
 
                                 val triggerTimeMillis = convertToMillis(selectedDate, selectedTime)
-                                setAlarm(context, triggerTimeMillis)
+                                setAlarm(context, triggerTimeMillis, temperature)
 
                                 onDismiss()
                             }) {

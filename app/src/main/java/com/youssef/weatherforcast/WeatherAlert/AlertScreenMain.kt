@@ -10,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
-
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -63,6 +62,7 @@ fun AlertScreenMain(
         else -> "°C"
     }
     val temperatureText = "$formattedTemp$unitSymbol"
+    val cityName = weatherResponse.name // Get city name from weather response
 
     Scaffold(
         topBar = {
@@ -108,6 +108,7 @@ fun AlertScreenMain(
                     items(alerts) { alert ->
                         AlertItem(
                             alert = alert,
+                            cityName = cityName, // Pass city name to each AlertItem
                             onRemove = {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     repo.deleteAlert(alert)
@@ -134,6 +135,7 @@ fun AlertScreenMain(
 @RequiresApi(Build.VERSION_CODES.O)
 fun AlertItem(
     alert: WeatherAlert,
+    cityName: String, // Added city name parameter
     onRemove: () -> Unit
 ) {
     val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
@@ -178,10 +180,11 @@ fun AlertItem(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "Alert Set For",
+                        text = "Alert  For $cityName ${alert.message}",
                         style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
                         color = Color.White
                     )
+
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
@@ -191,8 +194,6 @@ fun AlertItem(
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
-
-
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -207,16 +208,14 @@ fun AlertItem(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Remove Alert",
                         tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
+                        modifier = Modifier.size(28.dp))
                 }
             }
         }
     }
 }
 
-// Keep all other existing functions (DateAndTimePickerExample, setAlarm, convertToMillis) unchanged
-
+// Rest of the file (DateAndTimePickerExample, setAlarm, convertToMillis) remains unchanged
 
 @SuppressLint("ScheduleExactAlarm")
 private fun setAlarm(context: Context, time: Long, temperature: String) {
@@ -251,6 +250,8 @@ private fun setAlarm(context: Context, time: Long, temperature: String) {
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateAndTimePickerExample(

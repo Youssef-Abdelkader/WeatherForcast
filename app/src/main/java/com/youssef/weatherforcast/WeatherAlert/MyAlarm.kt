@@ -37,7 +37,7 @@ private fun showNotification(context: Context, title: String, desc: String) {
             channelName,
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            setSound(soundUri, null) // Set the notification sound
+            setSound(soundUri, null)
             enableVibration(true) // Enable vibration if needed
         }
         manager.createNotificationChannel(channel)

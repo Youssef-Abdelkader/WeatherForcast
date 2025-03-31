@@ -3,7 +3,6 @@ package com.youssef.weatherforcast.Home
 import SettingsViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,11 +27,10 @@ import java.util.Locale
 fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewModel) {
     val weatherState by homeViewModel.weather.collectAsState()
     val forecastState by homeViewModel.forecast.collectAsState()
-    val language by homeViewModel.language.collectAsState()
-    val units by homeViewModel.units.collectAsState()
-    val location by homeViewModel.location.collectAsState()
-    val windSpeedUnit by homeViewModel.windSpeed.collectAsState()
     val settingsUpdated by settingsViewModel.settingsUpdated.collectAsState()
+
+    // Fetch the selected temperature unit (Celsius, Fahrenheit, Kelvin)
+    val temperatureUnit by settingsViewModel.selectedTemperature.collectAsState()
 
     LaunchedEffect(settingsUpdated) {
         if (settingsUpdated) {
@@ -41,7 +38,6 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             homeViewModel.reloadData()
             settingsViewModel.notifySettingsChanged(false)
         }
-
     }
 
     Box(
@@ -49,7 +45,6 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    //0xFF2193b0  0xFF6dd5ed
                     colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
                 )
             )
@@ -62,7 +57,9 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
         ) {
             item {
                 weatherState?.let { weather ->
-                    WeatherCard(weather, windSpeedUnit, units, homeViewModel)
+                    WeatherCard(weather, homeViewModel, temperatureUnit)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    WeatherDetailsCard(weather, homeViewModel, temperatureUnit)
                     Spacer(modifier = Modifier.height(15.dp))
                 } ?: Text(
                     text = stringResource(R.string.loading_weather),
@@ -85,7 +82,10 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(forecast.list.take(8)) { item ->
-                                HourlyForecastItem(item, weatherState, homeViewModel, units)
+                                HourlyForecastItem(
+                                    item, weatherState, homeViewModel,
+                                    temperatureUnit = temperatureUnit
+                                )
                             }
                         }
                     }
@@ -106,14 +106,9 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                     }
 
                     items(groupedForecast) { item ->
-                        ForecastItem(item, weatherState, homeViewModel, units)
-                    }
-                } else {
-                    item {
-                        Text(
-                            text = stringResource(R.string.no_forecast_data),
-                            color = Color.White,
-                            modifier = Modifier.padding(16.dp)
+                        ForecastItem(
+                            item, weatherState, homeViewModel,
+                            temperatureUnit = temperatureUnit
                         )
                     }
                 }
@@ -128,144 +123,181 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
     }
 }
 
-
 @Composable
-fun WeatherCard(
-    weather: WeatherResponse,
-    windSpeedUnit: String,
-    temperatureUnit: String,
-    homeViewModel: HomeViewModel
-) {
+fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
 
-    val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
-    val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
+    val formattedDate = SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(System.currentTimeMillis())
+    val formattedTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(System.currentTimeMillis())
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(2.dp)
             .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(40.dp),
+        elevation = CardDefaults.cardElevation(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f))
     ) {
-        Box(
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF), Color(0xFF87CEFA)) // Deep Sky Blue to Light Sky Blue
-                ),
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF))
+                    ),
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(8.dp)
-                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // City Name
-                Text(
-                    text = weather.name ?: stringResource(R.string.unknown_city),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            Text(
+                text = weather.name ?: stringResource(R.string.unknown_city),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
+            )
 
-                // Weather Icon
-                val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
-                Image(
-                    painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
-                    contentDescription = stringResource(R.string.weather_icon),
-                    modifier = Modifier.size(100.dp)
-                )
+            val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
+            Image(
+                painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(80.dp)
+            )
 
-                // Temperature
-                Text(
-                    text = "$formattedTemp°${when (temperatureUnit) {
+            Text(
+                text = "$formattedTemp°${
+                    when (temperatureUnit) {
                         "Celsius" -> "C"
                         "Fahrenheit" -> "F"
                         "Kelvin" -> "K"
                         else -> "C"
-                    }}",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                    }
+                }",
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White
+            )
 
-                // Weather Description
+            Text(
+                text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "$formattedDate | $formattedTime",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+        }
+    }
+}
+@Composable
+fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String) {
+    val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
+    val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
+
+    val tempMin = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit))
+    val tempMax = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_max, temperatureUnit))
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .shadow(10.dp, shape = RoundedCornerShape(18.dp)),
+        elevation = CardDefaults.cardElevation(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.6f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF))
+                    ),
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .padding(vertical = 20.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                WeatherDetailItemWithIcon(
+                    R.drawable.humidity,
+                    stringResource(R.string.humidity),
+                    "${weather.main.humidity}%",
+                    Color.White
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                WeatherDetailItemWithIcon(
+                    R.drawable.pressure,
+                    stringResource(R.string.pressure),
+                    "${weather.main.pressure} hPa",
+                    Color.White
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                WeatherDetailItemWithIcon(
+                    R.drawable.sealevel,
+                    stringResource(R.string.sea_level),
+                    "${weather.main.sea_level} hPa",
+                    Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                WeatherDetailItemWithIcon(
+                    R.drawable.sunrise,
+                    stringResource(R.string.sunrise),
+                    sunriseTime,
+                    Color.White
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                WeatherDetailItemWithIcon(
+                    R.drawable.sunset,
+                    stringResource(R.string.sunset),
+                    sunsetTime,
+                    Color.White
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                WeatherDetailItemWithIcon(
+                    R.drawable.tempreture,
+                    stringResource(R.string.temp),
+                    "$tempMin° / $tempMax°",
+                    Color.White
+                )
+            }
+
+            // Adding the unit symbols below the temp min/max temperatures
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 Text(
-                    text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(top = 2.dp)
+                    text = when (temperatureUnit) {
+                        "Celsius" -> "°C"
+                        "Fahrenheit" -> "°F"
+                        "Kelvin" -> "°K"
+                        else -> "°C"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Weather Details (Humidity, Wind, Pressure)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.humidity,
-                        label = stringResource(R.string.humidity),
-                        value = "${weather.main.humidity}%",
-                        textColor = Color.White
-                    )
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.windspeed,
-                        label = stringResource(R.string.wind),
-                        value = "${weather.wind.speed} ${if (windSpeedUnit == "Meter/sec") "m/s" else "mph"}",
-                        textColor = Color.White
-                    )
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.pressure,
-                        label = stringResource(R.string.pressure),
-                        value = "${weather.main.pressure} hPa",
-                        textColor = Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Sunrise, Sunset, Sea Level
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.sunrise,
-                        label = stringResource(R.string.sunrise),
-                        value = sunriseTime,
-                        textColor = Color.White
-                    )
-
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.sunset,
-                        label = stringResource(R.string.sunset),
-                        value = sunsetTime,
-                        textColor = Color.White
-                    )
-
-                    WeatherDetailItemWithIcon(
-                        iconResId = R.drawable.sealevel,
-                        label = stringResource(R.string.sea_level),
-                        value = "${weather.main.sea_level} hPa",
-                        textColor = Color.White
-                    )
-                }
             }
         }
     }
 }
-
 
 @Composable
 fun HourlyForecastItem(

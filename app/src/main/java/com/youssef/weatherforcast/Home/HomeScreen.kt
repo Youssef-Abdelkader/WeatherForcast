@@ -49,7 +49,8 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
+                    //0xFF2193b0  0xFF6dd5ed
+                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
                 )
             )
     ) {
@@ -59,7 +60,6 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ✅ عرض بيانات الطقس الرئيسية
             item {
                 weatherState?.let { weather ->
                     WeatherCard(weather, windSpeedUnit, units, homeViewModel)
@@ -71,7 +71,6 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                 )
             }
 
-            // ✅ التوقعات لكل ساعة
             item {
                 forecastState?.let { forecast ->
                     if (!forecast.list.isNullOrEmpty()) {
@@ -93,7 +92,6 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                 }
             }
 
-            // ✅ التوقعات الأسبوعية
             forecastState?.let { forecast ->
                 if (!forecast.list.isNullOrEmpty()) {
                     val groupedForecast = groupForecastByDay(forecast.list)

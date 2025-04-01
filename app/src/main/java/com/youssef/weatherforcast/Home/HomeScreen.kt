@@ -46,7 +46,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
+                    colors = listOf(Color(0xFFAEAEAE), Color(0xFFFCFDFE))
                 )
             )
     ) {
@@ -59,10 +59,9 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
             item {
                 weatherState?.let { weather ->
                     WeatherCard(weather, homeViewModel, temperatureUnit)
+                    Spacer(modifier = Modifier.height(15.dp))
+                    WeatherDetailsCard(weather, homeViewModel, temperatureUnit,settingsViewModel)
                     Spacer(modifier = Modifier.height(8.dp))
-                    WeatherDetailsCard(weather, homeViewModel, temperatureUnit, windSpeedUnit)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    WindSpeedCard(weather, settingsViewModel) // ✅ تمت إضافته هنا
                     Spacer(modifier = Modifier.height(15.dp))
                     Spacer(modifier = Modifier.height(15.dp))
                 } ?: Text(
@@ -78,7 +77,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                         Text(
                             text = stringResource(R.string.next_hours),
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
+                            color = Color.Black,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         LazyRow(
@@ -104,7 +103,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
                         Text(
                             text = stringResource(R.string.next_days),
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
+                            color = Color.Black,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
@@ -148,7 +147,8 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
                 .fillMaxWidth()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF))
+                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
+//                        colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF))
                     ),
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -197,11 +197,12 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
         }
     }
 }
-
 @Composable
-fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String, windSpeedUnit: String) {
+fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,settingsViewModel: SettingsViewModel) {
     val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
     val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
+    val windSpeedUnit by settingsViewModel.selectedWindSpeed.collectAsState()
+
 
     // Convert min/max temperature
     val tempMin = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit))
@@ -214,13 +215,12 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
     }
 
     // Convert wind speed
-    val convertedWindSpeed = when (windSpeedUnit) {
-        "m/s" -> weather.wind.speed  // Keep as is
-        "mph" -> weather.wind.speed * 2.237 // Convert from m/s to mph
+     val windSpeed = when (windSpeedUnit) {
+        "Meter/sec" -> weather.wind.speed  // m/s
+        "Mile/hour" -> weather.wind.speed * 2.23694  // Convert to mph
         else -> weather.wind.speed
     }
-    val windSpeedFormatted = homeViewModel.formatTemperature(convertedWindSpeed)
-    val windSpeedUnitSymbol = if (windSpeedUnit == "mph") "mph" else "m/s"
+    val formattedWindSpeed = String.format("%.1f", windSpeed)
 
     Card(
         modifier = Modifier
@@ -263,10 +263,16 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 WeatherDetailItemWithIcon(
-                    R.drawable.sealevel,
-                    stringResource(R.string.sea_level),
-                    "${weather.main.sea_level} hPa",
-                    Color.White
+                    iconResId = R.drawable.windspeed,
+                    label = stringResource(R.string.wind),
+                    value = "$formattedWindSpeed ${
+                        when (windSpeedUnit) {
+                            "Meter/sec" -> "m/s"
+                            "Mile/hour" -> "mph"
+                            else -> "m/s"
+                        }
+                    }",
+                    textColor = Color.White
                 )
             }
 
@@ -297,70 +303,6 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                     stringResource(R.string.temp),
                     "$tempMin° / $tempMax° $tempUnitSymbol",
                     Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Wind Speed Row
-
-        }
-    }
-}
-
-@Composable
-fun WindSpeedCard(weather: WeatherResponse, settingsViewModel: SettingsViewModel) {
-    val windSpeedUnit by settingsViewModel.selectedWindSpeed.collectAsState()
-
-    // Convert wind speed based on user preference
-    val windSpeed = when (windSpeedUnit) {
-        "Meter/sec" -> weather.wind.speed  // m/s
-        "Mile/hour" -> weather.wind.speed * 2.23694  // Convert to mph
-        else -> weather.wind.speed
-    }
-    val formattedWindSpeed = String.format("%.1f", windSpeed)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .shadow(10.dp, shape = RoundedCornerShape(18.dp)),
-        elevation = CardDefaults.cardElevation(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.6f))
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .padding(vertical = 16.dp, horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.wind),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                WeatherDetailItemWithIcon(
-                    iconResId = R.drawable.windspeed,
-                    label = stringResource(R.string.wind),
-                    value = "$formattedWindSpeed ${
-                        when (windSpeedUnit) {
-                            "Meter/sec" -> "m/s"
-                            "Mile/hour" -> "mph"
-                            else -> "m/s"
-                        }
-                    }",
-                    textColor = Color.White
                 )
             }
         }

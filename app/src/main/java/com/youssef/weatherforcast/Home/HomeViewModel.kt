@@ -78,6 +78,11 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
             }
         }
     }
+    fun clearCoordinates() {
+        _lat.value = null
+        _lon.value = null
+    }
+
 
     fun reloadSettings() {
         _language.value = repository.getSetting("language", "en")
@@ -103,6 +108,9 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
                 }
             }
             "GPS" -> {
+                if (_lat.value == null || _lon.value == null) {
+                    // Trigger location update in MainActivity
+                }
                 _lat.value?.let { lat ->
                     _lon.value?.let { lon ->
                         loadWeatherAndForecast(lat, lon)

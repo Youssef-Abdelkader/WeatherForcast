@@ -75,7 +75,9 @@ class MainActivity : ComponentActivity() {
             if (settingsViewModel.selectedLocation.value == "GPS") {
                 val lat = location.latitude
                 val lon = location.longitude
+                // Always update coordinates when in GPS mode
                 homeViewModel.loadWeatherAndForecast(lat, lon)
+                homeViewModel.clearCoordinates() // Force fresh data load
             }
         }
 
@@ -158,6 +160,7 @@ class MainActivity : ComponentActivity() {
         checkLocationPermissions()
     }
 
+    // Modify checkLocationPermissions()
     private fun checkLocationPermissions() {
         when {
             ContextCompat.checkSelfPermission(
@@ -166,9 +169,16 @@ class MainActivity : ComponentActivity() {
                     ContextCompat.checkSelfPermission(
                         this, Manifest.permission.ACCESS_COARSE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED -> {
+
+                // Clear existing updates before requesting new ones
+                try {
+                    locationManager.removeUpdates(locationListener)
+                } catch (e: SecurityException) {
+                    Log.e("Location", "Security Exception: ${e.message}")
+                }
+
                 requestLocationUpdates()
             }
-
             else -> {
                 ActivityCompat.requestPermissions(
                     this,
@@ -182,6 +192,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun forceLocationRefresh() {
+        if (settingsViewModel.selectedLocation.value == "GPS") {
+            checkLocationPermissions()
+        }
+    }
     private fun requestLocationUpdates() {
         try {
             locationManager.requestLocationUpdates(
@@ -209,10 +224,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+
     override fun onDestroy() {
         super.onDestroy()
         locationManager.removeUpdates(locationListener)
     }
+
 
     private fun applyLanguage(languageCode: String) {
         val locale = Locale(languageCode)

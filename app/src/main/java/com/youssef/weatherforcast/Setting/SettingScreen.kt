@@ -23,10 +23,9 @@ import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.R
 import com.youssef.weatherforcast.utils.restartActivity
-
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController, homeViewModel: HomeViewModel) {
-    val context= LocalContext.current
+    val context = LocalContext.current
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val selectedTemperature by viewModel.selectedTemperature.collectAsState()
     val selectedLocation by viewModel.selectedLocation.collectAsState()
@@ -39,77 +38,76 @@ fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController, h
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF), Color(0xFF6dd5ed))
                 ),
-            ) )
-    {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp), // Adds spacing between items
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp), // Adds spacing between items
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Settings",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+            // Language Setting
+            SettingOption(
+                title = "Language",
+                iconRes = R.drawable.langauge,
+                options = listOf("Arabic", "English"),
+                selectedOption = selectedLanguage,
+                viewModel = viewModel
+            ) {
+                viewModel.updateLanguage(it)
+                restartActivity(context)
+            }
 
-                    // Language Setting
-                    SettingOption(
-                        title = "Language",
-                        iconRes = R.drawable.langauge,
-                        options = listOf("Arabic", "English"),
-                        selectedOption = selectedLanguage,
-                        viewModel = viewModel
-                    ) {
-                        viewModel.updateLanguage(it)
-                        restartActivity(context)
-                    }
+            // Temperature Unit Setting
+            SettingOption(
+                title = "Temperature Unit",
+                iconRes = R.drawable.tempreture,
+                options = listOf("Celsius", "Fahrenheit", "Kelvin"),
+                selectedOption = selectedTemperature,
+                viewModel = viewModel
+            ) {
+                viewModel.updateTemperature(it)
+            }
 
-                    // Temperature Unit Setting
-                    SettingOption(
-                        title = "Temperature Unit",
-                        iconRes = R.drawable.tempreture,
-                        options = listOf("Celsius", "Fahrenheit", "Kelvin"),
-                        selectedOption = selectedTemperature,
-                        viewModel = viewModel
-
-                    ) {
-                        viewModel.updateTemperature(it)
-                    }
-
-                    // Location Setting
-                    SettingOption(
-                        title = "Location",
-                        iconRes = R.drawable.location,
-                        options = listOf("GPS", "Map"),
-                        selectedOption = selectedLocation,
-                        viewModel = viewModel
-                    ) {
-                        viewModel.updateLocation(it)
-                        if (it == "Map") {
-                            navController.navigate(Screen.Map.route)
-                        } else {
-                            homeViewModel.reloadData()
-                        }
-                    }
-                }
-
-                    // Wind Speed Setting
-                    SettingOption(
-                        title = "Wind Speed",
-                        iconRes = R.drawable.wind,
-                        options = listOf("Meter/sec", "Mile/hour"),
-                        selectedOption = selectedWindSpeed,
-                        viewModel = viewModel
-
-                    ) {
-                        viewModel.updateWindSpeed(it)
-                    }
+            // Location Setting
+            SettingOption(
+                title = "Location",
+                iconRes = R.drawable.location,
+                options = listOf("GPS", "Map"),
+                selectedOption = selectedLocation,
+                viewModel = viewModel
+            ) {
+                viewModel.updateLocation(it)
+                if (it == "Map") {
+                    navController.navigate(Screen.Map.route)
+                } else {
+                    // Force refresh when switching back to GPS
+                    homeViewModel.reloadData()
+                    homeViewModel.clearCoordinates() // Add this function in HomeViewModel
                 }
             }
+
+            // Wind Speed Setting
+            SettingOption(
+                title = "Wind Speed",
+                iconRes = R.drawable.wind,
+                options = listOf("Meter/sec", "Mile/hour"),
+                selectedOption = selectedWindSpeed,
+                viewModel = viewModel
+            ) {
+                viewModel.updateWindSpeed(it)
+            }
+        }
+    }
+}
 
 @Composable
 fun SettingOption(

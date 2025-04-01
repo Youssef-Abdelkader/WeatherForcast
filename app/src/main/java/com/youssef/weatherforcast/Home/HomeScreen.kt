@@ -157,7 +157,7 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${weather.name ?: "Unknown"} (${locationMode})",
+                text = "${weather.name ?: "Unknown"} ",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White
             )

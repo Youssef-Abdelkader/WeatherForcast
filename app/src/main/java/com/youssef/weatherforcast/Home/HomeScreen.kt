@@ -203,10 +203,13 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
     }
 }
 
-
 @Composable
-fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,settingsViewModel: SettingsViewModel) {
-
+fun WeatherDetailsCard(
+    weather: WeatherResponse,
+    homeViewModel: HomeViewModel,
+    temperatureUnit: String,
+    settingsViewModel: SettingsViewModel
+) {
     val windSpeedUnit by settingsViewModel.selectedWindSpeed.collectAsState()
     val windSpeedUnitLocalized = homeViewModel.getLocalizedUnit(windSpeedUnit)
     val appLocale = homeViewModel.repository.getAppLocale()
@@ -214,12 +217,18 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
     val sunriseTime = timeFormat.format(weather.sys.sunrise * 1000L)
     val sunsetTime = timeFormat.format(weather.sys.sunset * 1000L)
 
-
     // Convert min/max temperature
-    val tempMin = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit))
-    val tempMax = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_max, temperatureUnit))
+    val tempMin = homeViewModel.formatTemperature(
+        homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit)
+    )
+    val tempMax = homeViewModel.formatTemperature(
+        homeViewModel.convertTemperature(weather.main.temp_max, temperatureUnit)
+    )
     val tempUnitLocalized = homeViewModel.getLocalizedUnit(temperatureUnit)
 
+    // Format numbers with locale-aware formatting
+    val formattedHumidity = homeViewModel.repository.formatNumber(weather.main.humidity.toDouble())
+    val formattedPressure = homeViewModel.repository.formatNumber(weather.main.pressure.toDouble())
 
     // Convert wind speed
     val windSpeed = when (windSpeedUnit) {
@@ -228,7 +237,6 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
         else -> weather.wind.speed
     }
     val formattedWindSpeed = homeViewModel.repository.formatNumber(windSpeed)
-
 
     Card(
         modifier = Modifier
@@ -259,14 +267,14 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                 WeatherDetailItemWithIcon(
                     R.drawable.humidity,
                     stringResource(R.string.humidity),
-                    "${weather.main.humidity}%",
+                    "$formattedHumidity%",  // Formatted humidity
                     Color.White
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 WeatherDetailItemWithIcon(
                     R.drawable.pressure,
                     stringResource(R.string.pressure),
-                    "${weather.main.pressure} hPa",
+                    "$formattedPressure hPa",  // Formatted pressure
                     Color.White
                 )
                 Spacer(modifier = Modifier.width(16.dp))
@@ -276,7 +284,6 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                     value = "$formattedWindSpeed $windSpeedUnitLocalized",
                     textColor = Color.White
                 )
-
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -307,12 +314,10 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                     "$tempMin° / $tempMax° $tempUnitLocalized",
                     Color.White
                 )
-
             }
         }
     }
 }
-
 
 @Composable
 fun HourlyForecastItem(

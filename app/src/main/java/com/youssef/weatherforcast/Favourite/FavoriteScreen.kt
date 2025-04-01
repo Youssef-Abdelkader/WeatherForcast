@@ -42,6 +42,8 @@ import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.R
 import com.youssef.weatherforcast.Setting.SettingsPreferences
+import kotlin.math.roundToInt
+
 @Composable
 fun FavoriteScreen(
     navController: NavController,
@@ -143,16 +145,17 @@ fun FavoriteItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
+//                    Text(
+//                        text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude),
+//                        style = MaterialTheme.typography.bodySmall,
+//                        color = Color.White.copy(alpha = 0.6f)
+//                    )
                     Spacer(modifier = Modifier.height(4.dp))
 
                     weather?.let {
+                        val celsiusTemp = (it.main.temp - 273.15).roundToInt()
                         Text(
-                            text = "Temp: ${it.main.temp}°C",
+                            text = "Temp: ${celsiusTemp}°C",
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )

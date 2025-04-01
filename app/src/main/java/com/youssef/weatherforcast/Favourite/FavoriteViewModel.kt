@@ -60,8 +60,7 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         loadFavorites()
     }
 
-    // Modified to use stateIn for better Flow handling
-    private fun loadFavorites() {
+    fun loadFavorites() {
         viewModelScope.launch {
             repo.getAllFavorites()
                 .catch { e ->
@@ -78,9 +77,8 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         }
     }
     fun convertTemperature(tempFromApi: Double, unit: String): Double {
-        // API returns Celsius for metric, Fahrenheit for imperial, Kelvin for standard
         return when (unit) {
-            "Celsius" -> tempFromApi // Already in Celsius
+            "Celsius" -> tempFromApi
             "Fahrenheit" -> tempFromApi // Already in Fahrenheit if unit=imperial
             "Kelvin" -> tempFromApi + 273.15 // Convert Celsius to Kelvin
             else -> tempFromApi
@@ -105,14 +103,12 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
                 }
 
                 viewModelScope.launch {
-                    // Get weather with correct units
                     getWeatherSafely(lat, lon, unitParam)?.collect { weather ->
                         _weather.value = weather
                     }
                 }
 
                 viewModelScope.launch {
-                    // Get forecast with correct units
                     repo.getForecast(lat, lon, unitParam, language.value).collect { forecast ->
                         _forecast.value = forecast
                     }
@@ -138,7 +134,6 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
             null
         }
     }
-    // Modified to handle possible null values
     fun removeFavorite(location: FavoriteLocation) {
         viewModelScope.launch {
             try {

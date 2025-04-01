@@ -50,17 +50,13 @@
             android:exported="true"/>
 
         <service
-            android:name=".WeatherAlert.NotificationService"
+            android:name=".WeatherAlert.AlertService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="false" />
 
-        <receiver
-            android:name=".WeatherAlert.AlertReceiver"
-            android:exported="false" />
 
-        <receiver
-            android:name=".WeatherAlert.StopReceiver"
-            android:exported="false" />
+
+
 
     </application>
 

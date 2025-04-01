@@ -66,11 +66,11 @@ fun AppNavHost(
             val lon = backStackEntry.arguments?.getString("lon")?.toDoubleOrNull() ?: 0.0
 
             DetailedScreen(
-                homeViewModel = homeViewModel,
                 settingsViewModel = settingsViewModel,
                 cityName = cityName,
                 lat = lat,
                 lon = lon
+                , favoriteViewModel = favoriteViewModel
             )
         }
 

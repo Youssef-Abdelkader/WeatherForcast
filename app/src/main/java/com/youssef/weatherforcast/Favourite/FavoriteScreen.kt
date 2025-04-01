@@ -74,10 +74,12 @@ fun FavoriteScreen(
 
             LazyColumn {
                 items(favorites) { location ->
-                    // Fetch the weather data using produceState
                     val weatherState = produceState<WeatherResponse?>(initialValue = null) {
                         // Collect the Flow from getWeatherSafely
-                        viewModel.getWeatherSafely(location.latitude, location.longitude)
+                        viewModel.getWeatherSafely(
+                            location.latitude, location.longitude,
+                            unitParam = viewModel.units.value,
+                        )
                             ?.collect { weather ->
                                 value = weather
                             }

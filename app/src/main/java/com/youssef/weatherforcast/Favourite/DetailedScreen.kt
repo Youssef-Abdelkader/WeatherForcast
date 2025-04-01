@@ -1,8 +1,5 @@
 package com.youssef.weatherforcast.Favourite
 
-import com.youssef.weatherforcast.Home.HomeViewModel
-
-
 import SettingsViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,25 +23,25 @@ import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.R
 import java.text.SimpleDateFormat
 import java.util.Locale
+
 @Composable
-fun DetailedScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewModel, cityName: String, lat:Double, lon:Double) {
-    val weatherState by homeViewModel.weather.collectAsState()
-    val forecastState by homeViewModel.forecast.collectAsState()
-    val language by homeViewModel.language.collectAsState()
-    val units by homeViewModel.units.collectAsState()
-    val location by homeViewModel.location.collectAsState()
-    val windSpeedUnit by homeViewModel.windSpeed.collectAsState()
+fun DetailedScreen(
+    settingsViewModel: SettingsViewModel,
+    cityName: String,
+    lat: Double,
+    lon: Double,
+    favoriteViewModel: FavoriteViewModel
+) {
+    val weatherState by favoriteViewModel.weather.collectAsState()
+    val forecastState by favoriteViewModel.forecast.collectAsState()
+    val windSpeedUnit by favoriteViewModel.windSpeed.collectAsState()
+    val units by favoriteViewModel.units.collectAsState()
     val settingsUpdated by settingsViewModel.settingsUpdated.collectAsState()
 
-    homeViewModel.loadWeatherAndForecast(lat, lon)
-    LaunchedEffect(settingsUpdated) {
-        if (settingsUpdated) {
-
-            homeViewModel.reloadSettings()
-            homeViewModel.reloadData()
-            settingsViewModel.notifySettingsChanged(false)
-        }
-
+    LaunchedEffect(Unit) {
+        favoriteViewModel.setLocation(lat, lon)
+        favoriteViewModel.reloadSettings()
+        favoriteViewModel.reloadData()
     }
 
     Box(
@@ -52,97 +49,98 @@ fun DetailedScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsView
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
+                    colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
                 )
-            )
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // ✅ عرض بيانات الطقس الرئيسية
-            item {
-                weatherState?.let { weather ->
-                    WeatherCard(weather, windSpeedUnit, units, homeViewModel)
-                    Spacer(modifier = Modifier.height(15.dp))
-                } ?: Text(
-                    text = stringResource(R.string.loading_weather),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+            ) ){
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Weather Card Section
+                    if (weatherState != null) {
+                        item {
+                            WeatherCard(weatherState!!, windSpeedUnit, units, favoriteViewModel)
+                            Spacer(modifier = Modifier.height(15.dp))
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = stringResource(R.string.loading_weather),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
 
-            // ✅ التوقعات لكل ساعة
-            item {
-                forecastState?.let { forecast ->
-                    if (!forecast.list.isNullOrEmpty()) {
-                        Text(
-                            text = stringResource(R.string.next_hours),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(forecast.list.take(8)) { item ->
-                                HourlyForecastItem(item, weatherState, homeViewModel, units)
+                    // Hourly Forecast Section
+                    if (forecastState?.list?.isNotEmpty() == true) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.next_hours),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                        item {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(forecastState!!.list.take(8)) { item ->
+                                    HourlyForecastItem(item, weatherState, favoriteViewModel, units)
+                                }
                             }
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = stringResource(R.string.loading_forecast),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+
+                    // Weekly Forecast Section
+                    if (forecastState?.list?.isNotEmpty() == true) {
+                        val groupedForecast = groupForecastByDay(forecastState!!.list)
+
+                        item {
+                            Text(
+                                text = stringResource(R.string.next_days),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                        items(groupedForecast) { item ->
+                            ForecastItem(item, weatherState, favoriteViewModel, units)
+                        }
+                    } else {
+                        item {
+                            Text(
+                                text = stringResource(R.string.no_forecast_data),
+                                color = Color.White,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
                 }
             }
-
-            // ✅ التوقعات الأسبوعية
-            forecastState?.let { forecast ->
-                if (!forecast.list.isNullOrEmpty()) {
-                    val groupedForecast = groupForecastByDay(forecast.list)
-
-                    item {
-                        Text(
-                            text = stringResource(R.string.next_days),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-
-                    items(groupedForecast) { item ->
-                        ForecastItem(item, weatherState, homeViewModel, units)
-                    }
-                } else {
-                    item {
-                        Text(
-                            text = stringResource(R.string.no_forecast_data),
-                            color = Color.White,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-            } ?: item {
-                Text(
-                    text = stringResource(R.string.loading_forecast),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        }
     }
-}
-
 
 @Composable
 fun WeatherCard(
     weather: WeatherResponse,
     windSpeedUnit: String,
     temperatureUnit: String,
-    homeViewModel: HomeViewModel
-) {
-    val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
-    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    favoriteViewModel: FavoriteViewModel
+) {// Keep this formatting in WeatherCard
+    val convertedTemp = favoriteViewModel.convertTemperature(weather.main.temp, temperatureUnit)
+    val formattedTemp = String.format("%.1f", convertedTemp)
 
     val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
     val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
@@ -187,6 +185,8 @@ fun WeatherCard(
                 )
 
                 // Temperature
+                // In WeatherCard composable
+// Temperature Display
                 Text(
                     text = "$formattedTemp°${when (temperatureUnit) {
                         "Celsius" -> "C"
@@ -276,11 +276,11 @@ fun WeatherCard(
 fun HourlyForecastItem(
     item: ForecastResponse.Item0,
     weatherResponse: WeatherResponse?,
-    homeViewModel: HomeViewModel,
+favoriteViewModel: FavoriteViewModel,
     temperatureUnit: String
 ) {
-    val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
-    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    val convertedTemp = favoriteViewModel.convertTemperature(item.main.temp, temperatureUnit)
+    val formattedTemp = favoriteViewModel.formatTemperature(convertedTemp)
 
     Card(
         modifier = Modifier
@@ -353,11 +353,11 @@ fun HourlyForecastItem(
 fun ForecastItem(
     item: ForecastResponse.Item0,
     weatherResponse: WeatherResponse?,
-    homeViewModel: HomeViewModel,
+   favoriteViewModel: FavoriteViewModel,
     temperatureUnit: String
 ) {
-    val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
-    val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    val convertedTemp = favoriteViewModel.convertTemperature(item.main.temp, temperatureUnit)
+    val formattedTemp = favoriteViewModel.formatTemperature(convertedTemp)
 
     Card(
         modifier = Modifier

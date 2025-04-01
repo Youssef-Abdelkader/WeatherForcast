@@ -15,8 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.youssef.weatherforcast.Model.ForecastResponse
 import com.youssef.weatherforcast.Model.WeatherResponse
@@ -311,7 +314,6 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
 }
 
 
-
 @Composable
 fun HourlyForecastItem(
     item: ForecastResponse.Item0,
@@ -322,11 +324,25 @@ fun HourlyForecastItem(
     val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
     val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
+
+    // Time formatting with locale
+    val timeFormat = remember {
+        SimpleDateFormat("hh:mm a", homeViewModel.repository.getAppLocale())
+    }
+    val formattedTime = try {
+        item.dt_txt?.let {
+            val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(it)
+            date?.let { timeFormat.format(it) } ?: ""
+        } ?: ""
+    } catch (e: Exception) {
+        item.dt_txt?.substring(11, 16) ?: stringResource(R.string.na)
+    }
+
     Card(
         modifier = Modifier
-            .fillMaxSize().padding(8.dp),
+            .fillMaxSize()
+            .padding(8.dp),
         shape = RoundedCornerShape(40.dp),
-        //colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(12.dp)
     ) {
         Box(
@@ -349,9 +365,8 @@ fun HourlyForecastItem(
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ✅ وقت التوقع
                 Text(
-                    text = item.dt_txt?.substring(11, 16) ?: stringResource(R.string.na),
+                    text = formattedTime,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )
@@ -370,7 +385,7 @@ fun HourlyForecastItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "$formattedTemp$unitSymbol", // Updated unit display
+                    text = "$formattedTemp$unitSymbol",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
@@ -378,9 +393,6 @@ fun HourlyForecastItem(
         }
     }
 }
-
-
-
 
 @Composable
 fun ForecastItem(
@@ -391,7 +403,20 @@ fun ForecastItem(
 ) {
     val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
-    val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit) // Added localized unit
+    val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
+
+    // Date formatting with locale
+    val dateFormat = remember {
+        SimpleDateFormat("EEEE, d MMM", homeViewModel.repository.getAppLocale())
+    }
+    val formattedDate = try {
+        item.dt_txt?.let {
+            val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).parse(it)
+            date?.let { dateFormat.format(it) } ?: ""
+        } ?: ""
+    } catch (e: Exception) {
+        item.dt_txt?.substring(0, 10) ?: stringResource(R.string.no_date)
+    }
 
     Card(
         modifier = Modifier
@@ -405,55 +430,58 @@ fun ForecastItem(
             modifier = Modifier
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed)) // Brighter Blue to Cyan
+                        colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
                     )
                 )
-
-
                 .padding(16.dp)
                 .fillMaxWidth())
-         {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
-            Image(
-                painter = painterResource(
-                    id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
-                ),
-                contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(50.dp)
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start
+        {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = if (isLayoutRTL()) Arrangement.Start else Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = item.dt_txt?.substring(0, 10) ?: stringResource(R.string.no_date),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White
+                val iconCode = item.weather.firstOrNull()?.icon ?: "01d"
+                Image(
+                    painter = painterResource(
+                        id = weatherResponse?.weatherIconResourceId(iconCode) ?: R.drawable.day_clear
+                    ),
+                    contentDescription = stringResource(R.string.weather_icon),
+                    modifier = Modifier.size(50.dp)
                 )
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White // Changed from Black to White for visibility
+                    )
+                    Text(
+                        text = "${stringResource(R.string.temp)}: $formattedTemp$unitSymbol",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+
                 Text(
-                    text = "${stringResource(R.string.temp)}: $formattedTemp$unitSymbol", // Updated unit display
+                    text = item.weather.firstOrNull()?.description
+                        ?: stringResource(R.string.no_data),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = if (isLayoutRTL()) TextAlign.Start else TextAlign.End
                 )
             }
-
-            Text(
-                text = item.weather.firstOrNull()?.description
-                    ?: stringResource(R.string.no_data),
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f)
-            )
         }
-    }
     }
 }
 
+@Composable
+private fun isLayoutRTL(): Boolean {
+    return LocalLayoutDirection.current == LayoutDirection.Rtl
+}
 fun groupForecastByDay(forecastList: List<ForecastResponse.Item0>): List<ForecastResponse.Item0> {
     val groupedForecast = mutableListOf<ForecastResponse.Item0>()
     var currentDate = ""

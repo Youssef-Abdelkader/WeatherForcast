@@ -23,9 +23,7 @@ class RepoImpl(
         val apiLangCode = getLanguageCode(language)
         return remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCode)
     }
-    // endregion
 
-    // region Settings Implementation
     override fun saveSetting(key: String, value: String) {
         settingsPreferences.saveSetting(key, value)
     }
@@ -33,7 +31,6 @@ class RepoImpl(
     override fun getSetting(key: String, defaultValue: String): String {
         return settingsPreferences.getSetting(key, defaultValue)
     }
-    // endregion
 
     // region Favorite Locations Implementation
     override suspend fun insertFavorite(favoriteLocation: FavoriteLocation) {
@@ -60,6 +57,14 @@ class RepoImpl(
 
     override fun getAllAlerts(): Flow<List<WeatherAlert>> {
         return localDataSource.getAllAlerts()
+    }
+
+    override suspend fun insertHomeDate(homeData: HomeData) {
+        return localDataSource.insertHomeData(homeData)
+    }
+
+    override fun getHomeDate(): Flow<HomeData?> {
+    return localDataSource.getHomeData()
     }
     // endregion
 

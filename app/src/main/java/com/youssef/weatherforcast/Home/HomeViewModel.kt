@@ -55,6 +55,7 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
             try {
                 val forecastModel = repository.getForecast(lat, lon, units.value, language.value)
                 _forecast.value = forecastModel
+                
                 Log.d("HomeViewModel", "Forecast data fetched: $forecastModel")
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error fetching forecast data: ${e.message}")

@@ -23,4 +23,8 @@ interface Repo {
     suspend fun insertAlert(weatherAlert: WeatherAlert)
     suspend fun deleteAlert(weatherAlert: WeatherAlert)
     fun getAllAlerts(): Flow<List<WeatherAlert>>
+
+    suspend fun insertHomeDate(homeData: HomeData)
+    fun getHomeDate(): Flow<HomeData?>
+
 }

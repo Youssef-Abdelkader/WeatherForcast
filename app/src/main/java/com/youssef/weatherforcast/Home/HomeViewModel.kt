@@ -17,6 +17,9 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
     private var _lat = MutableStateFlow<Double?>(null)
     private var _lon = MutableStateFlow<Double?>(null)
 
+    private var _manualLat = MutableStateFlow<Double?>(null)
+    private var _manualLon = MutableStateFlow<Double?>(null)
+
     private var _weather = MutableStateFlow<WeatherResponse?>(null)
     val weather = _weather.asStateFlow()
 
@@ -49,6 +52,7 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
                 val forecastModel =
                     repository.getForecast(lat, lon, units.value, language.value).first()
                 _forecast.value = forecastModel
+
                 repository.insertHomeDate(
                     homeData = HomeData(
                         weather = weatherModel,
@@ -56,103 +60,84 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
                     )
                 )
             } catch (e: Exception) {
-
+                Log.e("HomeViewModel", "Error fetching data: ${e.message}")
             }
         }
     }
 
-    fun CheckInternet() {
+    fun checkInternet() {
         viewModelScope.launch {
-
             try {
                 val homeData = repository.getHomeDate().first()
                 if (homeData != null) {
                     _weather.value = homeData.weather
                     _forecast.value = homeData.forecast
                 }
-
             } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error loading cached data: ${e.message}")
             }
         }
     }
-//
-//    fun getWeather(lat: Double, lon: Double) {
-//        viewModelScope.launch {
-//            try {
-//                val weatherModel = repository.getWeather(lat, lon, units.value, language.value)
-//                _weather.value = weatherModel
-//                Log.d("HomeViewModel", "Weather data fetched: $weatherModel")
-//            } catch (e: Exception) {
-//                Log.e("HomeViewModel", "Error fetching weather data: ${e.message}")
-//            }
-//        }
-//    }
-//
-//    fun getForecast(lat: Double, lon: Double) {
-//        viewModelScope.launch {
-//            try {
-//                val forecastModel = repository.getForecast(lat, lon, units.value, language.value)
-//                _forecast.value = forecastModel
-//
-//                Log.d("HomeViewModel", "Forecast data fetched: $forecastModel")
-//            } catch (e: Exception) {
-//                Log.e("HomeViewModel", "Error fetching forecast data: ${e.message}")
-//            }
-//        }
-//    }
 
-        fun reloadSettings() {
-            _language.value = repository.getSetting("language", "en")
-            _units.value = repository.getSetting("temperature", "Celsius")
-            _location.value = repository.getSetting("location", "GPS")
-            _windSpeed.value = repository.getSetting("windSpeed", "Meter/sec")
+    fun reloadSettings() {
+        _language.value = repository.getSetting("language", "en")
+        _units.value = repository.getSetting("temperature", "Celsius")
+        _location.value = repository.getSetting("location", "GPS")
+        _windSpeed.value = repository.getSetting("windSpeed", "Meter/sec")
+    }
 
-        }
+    fun loadWeatherAndForecast(lat: Double, lon: Double) {
+        Log.d("HomeViewModel", "Loading data for coordinates: ($lat, $lon)")
+        _lat.value = lat
+        _lon.value = lon
+        getWeatherAndForecast(lat, lon)
+    }
 
-        fun loadWeatherAndForecast(lat: Double, lon: Double) {
-            Log.d("HomeViewModel", "Loading data for coordinates: ($lat, $lon)")
-            _lat.value = lat
-            _lon.value = lon
-            getWeatherAndForecast(lat, lon)
-        }
-
-        fun reloadData() {
-            _lat.value?.let { lat ->
-                _lon.value?.let { lon ->
-                    loadWeatherAndForecast(lat, lon)
+    fun reloadData() {
+        when (_location.value) {
+            "Map" -> {
+                _manualLat.value?.let { lat ->
+                    _manualLon.value?.let { lon ->
+                        loadWeatherAndForecast(lat, lon)
+                    }
+                }
+            }
+            "GPS" -> {
+                _lat.value?.let { lat ->
+                    _lon.value?.let { lon ->
+                        loadWeatherAndForecast(lat, lon)
+                    }
                 }
             }
         }
+    }
 
-        fun convertTemperature(temp: Double, unit: String): Double {
-            return when (unit) {
-                "Celsius" -> temp - 273.15
-                "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
-                "Kelvin" -> temp
-                else -> temp
-            }
-        }
-
-        fun formatTemperature(temp: Double): Int {
-            return Math.round(temp).toInt()
-        }
-
-
-        // Add this function to handle manual location updates
-        fun updateManualLocation(lat: Double, lon: Double) {
-            if (_location.value == "Manual") {
-                loadWeatherAndForecast(lat, lon)
-            }
+    fun convertTemperature(temp: Double, unit: String): Double {
+        return when (unit) {
+            "Celsius" -> temp - 273.15
+            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
+            "Kelvin" -> temp
+            else -> temp
         }
     }
 
-
-    class WeatherFactory(private val repo: Repo) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(repo) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
+    fun formatTemperature(temp: Double): Int {
+        return Math.round(temp).toInt()
     }
+
+    fun updateManualCoordinates(lat: Double, lon: Double) {
+        _manualLat.value = lat
+        _manualLon.value = lon
+        loadWeatherAndForecast(lat, lon)
+    }
+}
+
+class WeatherFactory(private val repo: Repo) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HomeViewModel(repo) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

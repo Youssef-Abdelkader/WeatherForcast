@@ -37,6 +37,7 @@ import com.google.android.libraries.places.compose.autocomplete.models.Autocompl
 import com.google.android.libraries.places.compose.autocomplete.models.toPlaceDetails
 import com.google.maps.android.compose.*
 import com.youssef.weatherforcast.Data.RemoteDataSource.Constants
+import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -46,7 +47,8 @@ import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(navController: NavController, repo: Repo) {
+fun MapScreen(navController: NavController, repo: Repo,    homeViewModel: HomeViewModel? = null
+) {
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     val context = LocalContext.current
     val mapScreenViewModel: MapScreenViewModel = viewModel(factory = MapScreenViewModelFactory(repo))
@@ -105,12 +107,15 @@ fun MapScreen(navController: NavController, repo: Repo) {
             FloatingActionButton(
                 onClick = {
                     selectedLocation?.let {
+                        homeViewModel?.updateManualCoordinates(it.latitude, it.longitude)
                         mapScreenViewModel.insertFavoriteLocation(
                             lat = it.latitude,
                             lon = it.longitude,
                             name = searchText,
                             context = context
                         )
+                        navController.popBackStack()
+
                     }
                 },
                 modifier = Modifier.padding(16.dp)

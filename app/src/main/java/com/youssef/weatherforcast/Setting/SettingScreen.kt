@@ -17,12 +17,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
+import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.R
 import com.youssef.weatherforcast.utils.restartActivity
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel ) {
+fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController, homeViewModel: HomeViewModel) {
     val context= LocalContext.current
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val selectedTemperature by viewModel.selectedTemperature.collectAsState()
@@ -36,11 +39,14 @@ fun SettingsScreen(viewModel: SettingsViewModel ) {
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF), Color(0xFF6dd5ed))
                 ),
-            ) ){
+            ) )
+    {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp), // Adds spacing between items
+
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -81,10 +87,15 @@ fun SettingsScreen(viewModel: SettingsViewModel ) {
                         options = listOf("GPS", "Map"),
                         selectedOption = selectedLocation,
                         viewModel = viewModel
-
                     ) {
                         viewModel.updateLocation(it)
+                        if (it == "Map") {
+                            navController.navigate(Screen.Map.route)
+                        } else {
+                            homeViewModel.reloadData()
+                        }
                     }
+                }
 
                     // Wind Speed Setting
                     SettingOption(
@@ -99,7 +110,6 @@ fun SettingsScreen(viewModel: SettingsViewModel ) {
                     }
                 }
             }
-}
 
 @Composable
 fun SettingOption(
@@ -120,7 +130,8 @@ fun SettingOption(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -130,7 +141,6 @@ fun SettingOption(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Text(text = title, color = Color.White, style = MaterialTheme.typography.titleMedium)
             }
 
@@ -144,8 +154,9 @@ fun SettingOption(
                     ChoiceChip(
                         text = option,
                         isSelected = option == selectedOption,
-                        onClick = { onOptionSelected(option)
-                        viewModel.notifySettingsChanged(true)
+                        onClick = {
+                            onOptionSelected(option)
+                            viewModel.notifySettingsChanged(true)
                         }
                     )
                 }

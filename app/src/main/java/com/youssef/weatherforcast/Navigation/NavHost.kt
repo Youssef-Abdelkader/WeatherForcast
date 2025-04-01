@@ -19,8 +19,6 @@ import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
 import com.youssef.weatherforcast.WeatherAlert.AlertScreenMain
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlertScreen
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlertsViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -36,6 +34,16 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreen(homeViewModel, settingsViewModel)
         }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                viewModel = settingsViewModel,
+                navController = navController,
+                homeViewModel = homeViewModel
+            )
+        }
+
+
         composable(Screen.Favourite.route) {
             FavoriteScreen(
                 navController = navController,
@@ -74,12 +82,17 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.Settings.route) {
-            SettingsScreen(settingsViewModel)
-        }
+        // In your navigation component
         composable(Screen.Map.route) {
-            MapScreen(navController, repo)
+            MapScreen(
+                navController = navController,
+                repo = repo,
+                homeViewModel = homeViewModel
+            )
         }
+//        composable(Screen.Map.route) {
+//            MapScreen(navController, repo)
+//        }
     }
 }
 

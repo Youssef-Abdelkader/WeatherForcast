@@ -28,6 +28,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
     val weatherState by homeViewModel.weather.collectAsState()
     val forecastState by homeViewModel.forecast.collectAsState()
     val settingsUpdated by settingsViewModel.settingsUpdated.collectAsState()
+    val locationMode by settingsViewModel.selectedLocation.collectAsState()
 
     // Collect the selected temperature and wind speed units
     val temperatureUnit by settingsViewModel.selectedTemperature.collectAsState()
@@ -58,7 +59,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
         ) {
             item {
                 weatherState?.let { weather ->
-                    WeatherCard(weather, homeViewModel, temperatureUnit)
+                    WeatherCard(weather, homeViewModel, temperatureUnit,locationMode)
                     Spacer(modifier = Modifier.height(15.dp))
                     WeatherDetailsCard(weather, homeViewModel, temperatureUnit,settingsViewModel)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -127,7 +128,7 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
 }
 
 @Composable
-fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String) {
+fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,locationMode:String) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
 
@@ -156,7 +157,7 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = weather.name ?: stringResource(R.string.unknown_city),
+                text = "${weather.name ?: "Unknown"} (${locationMode})",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White
             )

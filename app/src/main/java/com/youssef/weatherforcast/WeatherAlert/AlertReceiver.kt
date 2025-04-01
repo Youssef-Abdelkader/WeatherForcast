@@ -20,7 +20,7 @@ class AlertReceiver : BroadcastReceiver() {
         val message = intent.getStringExtra("alert_message") ?: "Weather alert!"
 
         // Start foreground service
-        val serviceIntent = Intent(context, NotificationService::class.java).apply {
+        val serviceIntent = Intent(context, AlertService::class.java).apply {
             putExtra("alert_id", alertId)
             putExtra("alert_type", alertType.name)
             putExtra("alert_message", message)

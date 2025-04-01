@@ -23,18 +23,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.youssef.weatherforcast.Data.LocalDataSource.AppDatabase
@@ -50,7 +46,6 @@ import com.youssef.weatherforcast.Navigation.BottomNavigationBar
 import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.ui.theme.WeatherForcastTheme
-import com.youssef.weatherforcast.utils.NoInternetAnimation
 import com.youssef.weatherforcast.utils.isInternetAvailable
 import java.util.Locale
 
@@ -77,9 +72,11 @@ class MainActivity : ComponentActivity() {
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            val lat = location.latitude
-            val lon = location.longitude
-            homeViewModel.loadWeatherAndForecast(lat, lon)
+            if (settingsViewModel.selectedLocation.value == "GPS") {
+                val lat = location.latitude
+                val lon = location.longitude
+                homeViewModel.loadWeatherAndForecast(lat, lon)
+            }
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
@@ -91,6 +88,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -144,19 +142,20 @@ class MainActivity : ComponentActivity() {
                             favoriteViewModel = favoriteViewModel,
                             settingsViewModel
                         )
+
+                        LaunchedEffect(Unit) {
+                            settingsViewModel.selectedLocation.collect { locationMode ->
+                                if (locationMode == "GPS") {
+                                    checkLocationPermissions()
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
         checkLocationPermissions()
-    }
-
-    private fun isUnavailableScreen(route: String?): Boolean {
-        return when (route) {
-            Screen.Home.route -> true
-            else -> false
-        }
     }
 
     private fun checkLocationPermissions() {
@@ -200,14 +199,12 @@ class MainActivity : ComponentActivity() {
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_LOCATION_PERMISSION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    requestLocationUpdates()
-                } else {
-                    Log.e("Permission", "Location permission denied!")
-                    homeViewModel.loadWeatherAndForecast(30.033, 31.233)
-                }
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                requestLocationUpdates()
+            } else {
+                Log.e("Permission", "Location permission denied!")
+                homeViewModel.loadWeatherAndForecast(30.033, 31.233)
             }
         }
     }
@@ -230,33 +227,13 @@ class MainActivity : ComponentActivity() {
         _isConnected.postValue(isConnectedNow)
 
         if (!isConnectedNow) {
-            // No internet connection, call CheckInternet
-            homeViewModel.CheckInternet() // Calling the CheckInternet function
-        }
-    }
 
-    private fun registerNetworkCallback() {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        try {
-            connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        } catch (e: Exception) {
-            Log.e("Network", "Network callback registration failed: ${e.message}")
+       homeViewModel.checkInternet()
         }
     }
 
     override fun onResume() {
         super.onResume()
         checkNetworkConnection()
-        registerNetworkCallback()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        try {
-            connectivityManager.unregisterNetworkCallback(networkCallback)
-        } catch (e: Exception) {
-            Log.e("Network", "Network callback unregistration failed: ${e.message}")
-        }
     }
 }

@@ -1,9 +1,8 @@
+// RepoImpl.kt
 package com.youssef.weatherforcast.Model
 
-import android.util.Log
 import com.youssef.weatherforcast.Data.LocalDataSource.FavoriteDao
 import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
-import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
@@ -11,27 +10,10 @@ import kotlinx.coroutines.flow.Flow
 class RepoImpl(
     private val remoteDataSource: RemoteDataSource,
     private val settingsPreferences: SettingsPreferences,
-    private val favoriteDao: FavoriteDao
+    private val localDataSource: FavoriteDao
 ) : Repo {
 
-    fun getLanguageCode(language: String): String {
-        return when (language) {
-            "Arabic" -> "ar"
-            "English" -> "en"
-            else -> "en"
-        }
-    }
-    fun getUnitCode(language: String, unit: String): String {
-        val unitMap = mapOf(
-            "C" to mapOf("Arabic" to "س", "English" to "C"),
-            "F" to mapOf("Arabic" to "ف", "English" to "F"),
-            "K" to mapOf("Arabic" to "ك", "English" to "K")
-        )
-
-        return unitMap[unit]?.get(language) ?: unit // Default to original unit if not found
-    }
-
-
+    // region Weather Data Implementation
     override suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): WeatherResponse {
         val apiLangCode = getLanguageCode(language)
         return remoteDataSource.getWeatherOverNetwork(lat, lon, units, apiLangCode)
@@ -41,39 +23,62 @@ class RepoImpl(
         val apiLangCode = getLanguageCode(language)
         return remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCode)
     }
+    // endregion
 
+    // region Settings Implementation
     override fun saveSetting(key: String, value: String) {
-
         settingsPreferences.saveSetting(key, value)
     }
 
     override fun getSetting(key: String, defaultValue: String): String {
-
         return settingsPreferences.getSetting(key, defaultValue)
     }
+    // endregion
 
+    // region Favorite Locations Implementation
     override suspend fun insertFavorite(favoriteLocation: FavoriteLocation) {
-        favoriteDao.insertFavorite(favoriteLocation)
+        localDataSource.insertFavorite(favoriteLocation)
     }
 
     override suspend fun deleteFavorite(favoriteLocation: FavoriteLocation) {
-        favoriteDao.deleteFavorite(favoriteLocation)
+        localDataSource.deleteFavorite(favoriteLocation)
     }
 
     override fun getAllFavorites(): Flow<List<FavoriteLocation>> {
-        return favoriteDao.getAllFavorites()
+        return localDataSource.getAllFavorites()
     }
+    // endregion
 
+    // region Weather Alerts Implementation
     override suspend fun insertAlert(weatherAlert: WeatherAlert) {
-        favoriteDao.insertAlert(weatherAlert)
+        localDataSource.insertAlert(weatherAlert)
     }
 
     override suspend fun deleteAlert(weatherAlert: WeatherAlert) {
-        favoriteDao.deleteAlert(weatherAlert)
+        localDataSource.deleteAlert(weatherAlert)
     }
 
     override fun getAllAlerts(): Flow<List<WeatherAlert>> {
-        return favoriteDao.getAllAlerts()
+        return localDataSource.getAllAlerts()
     }
-}
+    // endregion
 
+    // region Helper Methods
+    fun getLanguageCode(language: String): String {
+        return when (language) {
+            "Arabic" -> "ar"
+            "English" -> "en"
+            else -> "en"
+        }
+    }
+
+    fun getUnitCode(language: String, unit: String): String {
+        val unitMap = mapOf(
+            "C" to mapOf("Arabic" to "س", "English" to "C"),
+            "F" to mapOf("Arabic" to "ف", "English" to "F"),
+            "K" to mapOf("Arabic" to "ك", "English" to "K")
+        )
+        return unitMap[unit]?.get(language) ?: unit
+    }
+    // endregion
+}

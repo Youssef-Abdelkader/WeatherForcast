@@ -129,7 +129,7 @@ class MainActivity : ComponentActivity() {
                 val repo = RepoImpl(
                     remoteDataSource = RemoteDataSourceImpl.getInstance(RetrofitHelper.service),
                     settingsPreferences = SettingsPreferences(this),
-                    favoriteDao = AppDatabase.getInstance(applicationContext).favoriteDao()
+                    localDataSource = AppDatabase.getInstance(this).favoriteDao()
 
                 )
                 val favoriteViewModel: FavoriteViewModel = viewModel(

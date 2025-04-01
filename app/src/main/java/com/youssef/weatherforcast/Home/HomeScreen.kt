@@ -131,9 +131,14 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
 }
 
 @Composable
-fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,locationMode:String) {
+fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String, locationMode: String) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+
+    // Feels Like Temperature
+    val convertedFeelsLike = homeViewModel.convertTemperature(weather.main.feels_like, temperatureUnit)
+    val formattedFeelsLike = homeViewModel.formatTemperature(convertedFeelsLike)
+
     val dateFormat = remember {
         SimpleDateFormat("EEEE, MMM d", homeViewModel.repository.getAppLocale())
     }
@@ -143,16 +148,15 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
     val formattedDate = dateFormat.format(System.currentTimeMillis())
     val formattedTime = timeFormat.format(System.currentTimeMillis())
 
-    // Replace the existing unitSymbol code in WeatherCard
     val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(2.dp)
-            .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.5f))
+            .padding(24.dp) // Padding for a larger card
+            .shadow(24.dp, shape = RoundedCornerShape(32.dp)), // Larger shadow for more elegance
+        elevation = CardDefaults.cardElevation(24.dp), // Increased elevation for more depth
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.75f)) // Increased opacity for the background
     ) {
         Column(
             modifier = Modifier
@@ -160,44 +164,52 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(Color(0xFF2193b0), Color(0xFF6dd5ed))
-//                        colors = listOf(Color(0xFF1E90FF), Color(0xFF00BFFF))
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(32.dp)
                 )
-                .padding(16.dp),
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${weather.name ?: "Unknown"} ",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White
+                text = "${weather.name ?: "Unknown"}",
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the city name
             )
 
             val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
             Image(
                 painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
                 contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(120.dp) // Larger icon for more prominence
             )
 
             Text(
-                text = "$formattedTemp$unitSymbol", // Removed explicit ° character
-                style = MaterialTheme.typography.displaySmall,
-                color = Color.White
+                text = "$formattedTemp$unitSymbol", // Larger temperature with unit
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                modifier = Modifier.padding(vertical = 20.dp) // Increased vertical spacing
+            )
+
+            // Add "Feels Like" below the temperature
+            Text(
+                text = "${stringResource(R.string.feels_like)}: $formattedFeelsLike$unitSymbol",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the "Feels Like" temperature
             )
 
             Text(
                 text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White.copy(alpha = 0.8f)
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the description
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "$formattedDate | $formattedTime",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f)
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.85f)
             )
         }
     }
@@ -454,6 +466,7 @@ fun ForecastItem(
                     contentDescription = stringResource(R.string.weather_icon),
                     modifier = Modifier.size(50.dp)
                 )
+                Spacer(modifier = Modifier.width(16.dp)) // Increase space between icon and text
 
                 Column(
                     modifier = Modifier.weight(1f),

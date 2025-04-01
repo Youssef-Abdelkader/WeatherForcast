@@ -19,4 +19,6 @@
     <string name="sunrise">Sunrise</string>
     <string name="sunset">Sunset</string>
     <string name="sea_level">Sea Level</string>
+    <string name="feels_like">Feels Like</string>
+
 </resources>

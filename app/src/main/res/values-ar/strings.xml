@@ -19,4 +19,6 @@
     <string name="sunrise">شروق الشمس</string>
     <string name="sunset">غروب الشمس</string>
     <string name="sea_level">مستوى سطح البحر</string>
+    <string name="feels_like">درجة الحرارة المحسوسة</string>
+
 </resources>

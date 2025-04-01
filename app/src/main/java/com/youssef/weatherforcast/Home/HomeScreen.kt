@@ -153,10 +153,10 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp) // Padding for a larger card
-            .shadow(24.dp, shape = RoundedCornerShape(32.dp)), // Larger shadow for more elegance
-        elevation = CardDefaults.cardElevation(24.dp), // Increased elevation for more depth
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.75f)) // Increased opacity for the background
+            .padding(24.dp)
+            .shadow(24.dp, shape = RoundedCornerShape(32.dp)),
+        elevation = CardDefaults.cardElevation(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF3A3A3A).copy(alpha = 0.75f))
     ) {
         Column(
             modifier = Modifier
@@ -229,7 +229,6 @@ fun WeatherDetailsCard(
     val sunriseTime = timeFormat.format(weather.sys.sunrise * 1000L)
     val sunsetTime = timeFormat.format(weather.sys.sunset * 1000L)
 
-    // Convert min/max temperature
     val tempMin = homeViewModel.formatTemperature(
         homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit)
     )
@@ -238,11 +237,9 @@ fun WeatherDetailsCard(
     )
     val tempUnitLocalized = homeViewModel.getLocalizedUnit(temperatureUnit)
 
-    // Format numbers with locale-aware formatting
     val formattedHumidity = homeViewModel.repository.formatNumber(weather.main.humidity.toDouble())
     val formattedPressure = homeViewModel.repository.formatNumber(weather.main.pressure.toDouble())
 
-    // Convert wind speed
     val windSpeed = when (windSpeedUnit) {
         "Meter/sec" -> weather.wind.speed
         "Mile/hour" -> weather.wind.speed * 2.23694

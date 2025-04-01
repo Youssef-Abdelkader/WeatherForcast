@@ -57,7 +57,7 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
         return localDataSource.getAllAlerts()
     }
 
-    override suspend fun insertHomeDate(homeData: HomeData) {
+    override suspend fun insertHomeData(homeData: HomeData) {
         return localDataSource.insertHomeData(homeData)
     }
 

@@ -22,7 +22,7 @@ interface Repo {
     suspend fun deleteAlert(weatherAlert: WeatherAlert)
     fun getAllAlerts(): Flow<List<WeatherAlert>>
 
-    suspend fun insertHomeDate(homeData: HomeData)
+    suspend fun insertHomeData(homeData: HomeData)
     fun getHomeDate(): Flow<HomeData?>
 
  fun getLocalizedUnit(unit: String): String

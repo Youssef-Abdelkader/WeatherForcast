@@ -9,7 +9,5 @@ data class HomeData(
     val id: Int = 0,
     val weather: WeatherResponse?,
     val forecast: ForecastResponse?,
-//    val language: String,
-//    val units: String,
-//    val location: String,
+
 )

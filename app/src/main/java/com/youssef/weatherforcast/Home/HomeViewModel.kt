@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class HomeViewModel(var repository: Repo) : ViewModel() {
+
     private var _lat = MutableStateFlow<Double?>(null)
     private var _lon = MutableStateFlow<Double?>(null)
 
@@ -54,7 +55,7 @@ class HomeViewModel(var repository: Repo) : ViewModel() {
                     repository.getForecast(lat, lon, units.value, language.value).first()
                 _forecast.value = forecastModel
 
-                repository.insertHomeDate(
+                repository.insertHomeData(
                     homeData = HomeData(
                         weather = weatherModel,
                         forecast = forecastModel

@@ -12,8 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
-class HomeViewModel(private var repository: Repo) : ViewModel() {
+class HomeViewModel(var repository: Repo) : ViewModel() {
     private var _lat = MutableStateFlow<Double?>(null)
     private var _lon = MutableStateFlow<Double?>(null)
 
@@ -120,18 +121,36 @@ class HomeViewModel(private var repository: Repo) : ViewModel() {
         }
     }
 
+
+
     fun convertTemperature(temp: Double, unit: String): Double {
-        return when (unit) {
-            "Celsius" -> temp - 273.15
+        val converted = when (unit) {
+            "Celsius" -> temp - 273.15.roundToInt()
             "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
             "Kelvin" -> temp
             else -> temp
         }
+        return converted
     }
 
-    fun formatTemperature(temp: Double): Int {
-        return Math.round(temp).toInt()
+    fun formatTemperature(temp: Double): String {
+        val rounded = Math.round(temp)
+        return repository.formatNumber(rounded.toDouble())
     }
+
+    fun getLocalizedUnit(unit: String): String {
+        val currentLanguage = repository.getSetting("language", "English")
+        return when (unit) {
+            "Celsius" -> if (currentLanguage == "Arabic") "م°" else "°C"
+            "Fahrenheit" -> if (currentLanguage == "Arabic") "ف°" else "°F"
+            "Kelvin" -> if (currentLanguage == "Arabic") "ك°" else "K"
+            "Meter/sec" -> if (currentLanguage == "Arabic") "م/ث" else "m/s"
+            "Mile/hour" -> if (currentLanguage == "Arabic") "ميل/س" else "mph"
+            else -> unit
+        }
+    }
+
+
 
     fun updateManualCoordinates(lat: Double, lon: Double) {
         _manualLat.value = lat

@@ -1,6 +1,7 @@
 package com.youssef.weatherforcast.Model
 
 import kotlinx.coroutines.flow.Flow
+import java.util.Locale
 
 interface Repo {
     // Weather Data Operations
@@ -23,4 +24,8 @@ interface Repo {
 
     suspend fun insertHomeDate(homeData: HomeData)
     fun getHomeDate(): Flow<HomeData?>
+
+ fun getLocalizedUnit(unit: String): String
+ fun formatNumber(value: Double): String
+ fun getAppLocale(): Locale
 }

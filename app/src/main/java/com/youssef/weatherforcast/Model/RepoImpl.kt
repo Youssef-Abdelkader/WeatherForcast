@@ -6,6 +6,8 @@ import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import java.text.NumberFormat
+import java.util.Locale
 
 class RepoImpl(
     private val remoteDataSource: RemoteDataSource,
@@ -72,6 +74,32 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
         }
     }
 
+    override fun getAppLocale(): Locale {
+        return when (getSetting("language", "English")) {
+            "Arabic" -> Locale("ar")
+            else -> Locale.ENGLISH
+        }
+    }
+
+    override fun formatNumber(value: Double): String {
+        val locale = getAppLocale()
+        return NumberFormat.getInstance(locale).format(value)
+    }
+
+
+    override fun getLocalizedUnit(unit: String): String {
+        val language = getSetting("language", "English")
+        return when (unit) {
+            "C" -> getUnitCode(language, "C")
+            "F" -> getUnitCode(language, "F")
+            "K" -> getUnitCode(language, "K")
+            "Meter/sec" -> if (language == "Arabic") "م/ث" else "m/s"
+            "Mile/hour" -> if (language == "Arabic") "ميل/س" else "mph"
+            else -> unit
+        }
+    }
+}
+
     fun getUnitCode(language: String, unit: String): String {
         val unitMap = mapOf(
             "C" to mapOf("Arabic" to "س", "English" to "C"),
@@ -80,4 +108,3 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
         )
         return unitMap[unit]?.get(language) ?: unit
     }
-}

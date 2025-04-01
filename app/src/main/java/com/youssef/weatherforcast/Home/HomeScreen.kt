@@ -131,9 +131,17 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
 fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,locationMode:String) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    val dateFormat = remember {
+        SimpleDateFormat("EEEE, MMM d", homeViewModel.repository.getAppLocale())
+    }
+    val timeFormat = remember {
+        SimpleDateFormat("hh:mm a", homeViewModel.repository.getAppLocale())
+    }
+    val formattedDate = dateFormat.format(System.currentTimeMillis())
+    val formattedTime = timeFormat.format(System.currentTimeMillis())
 
-    val formattedDate = SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(System.currentTimeMillis())
-    val formattedTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(System.currentTimeMillis())
+    // Replace the existing unitSymbol code in WeatherCard
+    val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
 
     Card(
         modifier = Modifier
@@ -170,14 +178,7 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
             )
 
             Text(
-                text = "$formattedTemp°${
-                    when (temperatureUnit) {
-                        "Celsius" -> "C"
-                        "Fahrenheit" -> "F"
-                        "Kelvin" -> "K"
-                        else -> "C"
-                    }
-                }",
+                text = "$formattedTemp$unitSymbol", // Removed explicit ° character
                 style = MaterialTheme.typography.displaySmall,
                 color = Color.White
             )
@@ -198,30 +199,33 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
         }
     }
 }
+
+
 @Composable
 fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String,settingsViewModel: SettingsViewModel) {
-    val sunriseTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunrise * 1000L)
-    val sunsetTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(weather.sys.sunset * 1000L)
+
     val windSpeedUnit by settingsViewModel.selectedWindSpeed.collectAsState()
+    val windSpeedUnitLocalized = homeViewModel.getLocalizedUnit(windSpeedUnit)
+    val appLocale = homeViewModel.repository.getAppLocale()
+    val timeFormat = remember { SimpleDateFormat("hh:mm a", appLocale) }
+    val sunriseTime = timeFormat.format(weather.sys.sunrise * 1000L)
+    val sunsetTime = timeFormat.format(weather.sys.sunset * 1000L)
 
 
     // Convert min/max temperature
     val tempMin = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_min, temperatureUnit))
     val tempMax = homeViewModel.formatTemperature(homeViewModel.convertTemperature(weather.main.temp_max, temperatureUnit))
-    val tempUnitSymbol = when (temperatureUnit) {
-        "Celsius" -> "°C"
-        "Fahrenheit" -> "°F"
-        "Kelvin" -> "°K"
-        else -> "°C"
-    }
+    val tempUnitLocalized = homeViewModel.getLocalizedUnit(temperatureUnit)
+
 
     // Convert wind speed
-     val windSpeed = when (windSpeedUnit) {
-        "Meter/sec" -> weather.wind.speed  // m/s
-        "Mile/hour" -> weather.wind.speed * 2.23694  // Convert to mph
+    val windSpeed = when (windSpeedUnit) {
+        "Meter/sec" -> weather.wind.speed
+        "Mile/hour" -> weather.wind.speed * 2.23694
         else -> weather.wind.speed
     }
-    val formattedWindSpeed = String.format("%.1f", windSpeed)
+    val formattedWindSpeed = homeViewModel.repository.formatNumber(windSpeed)
+
 
     Card(
         modifier = Modifier
@@ -266,15 +270,10 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                 WeatherDetailItemWithIcon(
                     iconResId = R.drawable.windspeed,
                     label = stringResource(R.string.wind),
-                    value = "$formattedWindSpeed ${
-                        when (windSpeedUnit) {
-                            "Meter/sec" -> "m/s"
-                            "Mile/hour" -> "mph"
-                            else -> "m/s"
-                        }
-                    }",
+                    value = "$formattedWindSpeed $windSpeedUnitLocalized",
                     textColor = Color.White
                 )
+
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -302,9 +301,10 @@ fun WeatherDetailsCard(weather: WeatherResponse, homeViewModel: HomeViewModel, t
                 WeatherDetailItemWithIcon(
                     R.drawable.tempreture,
                     stringResource(R.string.temp),
-                    "$tempMin° / $tempMax° $tempUnitSymbol",
+                    "$tempMin° / $tempMax° $tempUnitLocalized",
                     Color.White
                 )
+
             }
         }
     }
@@ -321,7 +321,7 @@ fun HourlyForecastItem(
 ) {
     val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
-
+    val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
     Card(
         modifier = Modifier
             .fillMaxSize().padding(8.dp),
@@ -370,14 +370,7 @@ fun HourlyForecastItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "$formattedTemp°${
-                        when (temperatureUnit) {
-                            "Celsius" -> "C"
-                            "Fahrenheit" -> "F"
-                            "Kelvin" -> "K"
-                            else -> "C"
-                        }
-                    }",
+                    text = "$formattedTemp$unitSymbol", // Updated unit display
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
@@ -398,6 +391,7 @@ fun ForecastItem(
 ) {
     val convertedTemp = homeViewModel.convertTemperature(item.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
+    val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit) // Added localized unit
 
     Card(
         modifier = Modifier
@@ -443,14 +437,7 @@ fun ForecastItem(
                     color = Color.White
                 )
                 Text(
-                    text = "${stringResource(R.string.temp)}: $formattedTemp°${
-                        when (temperatureUnit) {
-                            "Celsius" -> "C"
-                            "Fahrenheit" -> "F"
-                            "Kelvin" -> "K"
-                            else -> "C"
-                        }
-                    }",
+                    text = "${stringResource(R.string.temp)}: $formattedTemp$unitSymbol", // Updated unit display
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.8f)
                 )
@@ -487,6 +474,7 @@ fun WeatherDetailItemWithIcon(
     value: String,
     textColor: Color
 ) {
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

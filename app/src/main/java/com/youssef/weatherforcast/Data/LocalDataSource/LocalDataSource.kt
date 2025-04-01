@@ -3,7 +3,7 @@ package com.youssef.weatherforcast.Data.LocalDataSource
 
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Model.HomeData
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
+import com.youssef.weatherforcast.Model.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 
 interface LocalDataSource {

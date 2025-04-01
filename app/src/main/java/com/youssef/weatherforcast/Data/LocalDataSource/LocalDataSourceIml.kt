@@ -1,12 +1,9 @@
 // LocalDataSourceImpl.kt
 package com.youssef.weatherforcast.Data.LocalDataSource
 
-import com.youssef.weatherforcast.Data.RemoteDataSource.ApiService
-import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
-import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSourceImpl
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Model.HomeData
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
+import com.youssef.weatherforcast.Model.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 
 class LocalDataSourceImpl(

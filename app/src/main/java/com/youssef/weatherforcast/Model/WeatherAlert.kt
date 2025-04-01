@@ -1,5 +1,5 @@
 // File name: WeatherAlert.kt
-package com.youssef.weatherforcast.WeatherAlert
+package com.youssef.weatherforcast.Model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

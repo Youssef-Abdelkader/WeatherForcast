@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Model.HomeData
 import com.youssef.weatherforcast.Model.HomeDataConverters
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
+import com.youssef.weatherforcast.Model.WeatherAlert
 @Database(
     entities = [FavoriteLocation::class, WeatherAlert::class, HomeData::class],
     version = 4

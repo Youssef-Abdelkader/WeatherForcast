@@ -1,6 +1,5 @@
 package com.youssef.weatherforcast.Model
 
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 
 interface Repo {

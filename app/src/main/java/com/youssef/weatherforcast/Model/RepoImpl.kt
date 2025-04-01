@@ -4,7 +4,6 @@ package com.youssef.weatherforcast.Model
 import com.youssef.weatherforcast.Data.LocalDataSource.FavoriteDao
 import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
 import com.youssef.weatherforcast.Setting.SettingsPreferences
-import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -14,7 +13,6 @@ class RepoImpl(
     private val localDataSource: FavoriteDao
 ) : Repo {
 
-    // region Weather Data Implementation
     override suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): Flow<WeatherResponse> {
         val apiLangCode = getLanguageCode(language)
       return flowOf(remoteDataSource.getWeatherOverNetwork(lat, lon, units, apiLangCode))
@@ -33,7 +31,6 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
         return settingsPreferences.getSetting(key, defaultValue)
     }
 
-    // region Favorite Locations Implementation
     override suspend fun insertFavorite(favoriteLocation: FavoriteLocation) {
         localDataSource.insertFavorite(favoriteLocation)
     }
@@ -45,9 +42,7 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
     override fun getAllFavorites(): Flow<List<FavoriteLocation>> {
         return localDataSource.getAllFavorites()
     }
-    // endregion
 
-    // region Weather Alerts Implementation
     override suspend fun insertAlert(weatherAlert: WeatherAlert) {
         localDataSource.insertAlert(weatherAlert)
     }
@@ -69,7 +64,6 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
     }
     // endregion
 
-    // region Helper Methods
     fun getLanguageCode(language: String): String {
         return when (language) {
             "Arabic" -> "ar"
@@ -86,5 +80,4 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
         )
         return unitMap[unit]?.get(language) ?: unit
     }
-    // endregion
 }

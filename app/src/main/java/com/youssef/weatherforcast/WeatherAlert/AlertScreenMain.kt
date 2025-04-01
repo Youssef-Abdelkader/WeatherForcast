@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.youssef.weatherforcast.Home.HomeViewModel
+import com.youssef.weatherforcast.Model.AlertType
+import com.youssef.weatherforcast.Model.WeatherAlert
 import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.R
 import java.text.SimpleDateFormat

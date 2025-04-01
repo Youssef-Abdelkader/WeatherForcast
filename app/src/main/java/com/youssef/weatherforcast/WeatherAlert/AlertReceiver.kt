@@ -8,6 +8,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.youssef.weatherforcast.Model.AlertType
+
 class AlertReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("AlertReceiver", "Alarm triggered! ${intent.extras}")

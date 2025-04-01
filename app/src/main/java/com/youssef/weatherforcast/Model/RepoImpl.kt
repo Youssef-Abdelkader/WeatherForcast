@@ -6,6 +6,7 @@ import com.youssef.weatherforcast.Data.RemoteDataSource.RemoteDataSource
 import com.youssef.weatherforcast.Setting.SettingsPreferences
 import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class RepoImpl(
     private val remoteDataSource: RemoteDataSource,
@@ -14,14 +15,14 @@ class RepoImpl(
 ) : Repo {
 
     // region Weather Data Implementation
-    override suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): WeatherResponse {
+    override suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): Flow<WeatherResponse> {
         val apiLangCode = getLanguageCode(language)
-        return remoteDataSource.getWeatherOverNetwork(lat, lon, units, apiLangCode)
+      return flowOf(remoteDataSource.getWeatherOverNetwork(lat, lon, units, apiLangCode))
     }
 
-    override suspend fun getForecast(lat: Double, lon: Double, units: String, language: String): ForecastResponse {
+    override suspend fun getForecast(lat: Double, lon: Double, units: String, language: String): Flow<ForecastResponse >{
         val apiLangCode = getLanguageCode(language)
-        return remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCode)
+return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCode))
     }
 
     override fun saveSetting(key: String, value: String) {

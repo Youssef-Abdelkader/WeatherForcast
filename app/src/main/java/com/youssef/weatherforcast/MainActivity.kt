@@ -1,4 +1,5 @@
 package com.youssef.weatherforcast
+
 import SettingsViewModel
 import SettingsViewModelFactory
 import android.Manifest
@@ -94,12 +95,9 @@ class MainActivity : ComponentActivity() {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                startActivity(intent) // يفتح إعدادات التطبيق للسماح بالجدولة الدقيقة
+                startActivity(intent) // Opens app settings to allow exact alarm scheduling
             }
         }
-
-
-
 
         // Initialize dependencies
         val apiService = RetrofitHelper.service
@@ -126,17 +124,6 @@ class MainActivity : ComponentActivity() {
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
                 val isBottomBarVisible = currentRoute != Screen.Splash.route
-                val repo = RepoImpl(
-                    remoteDataSource = RemoteDataSourceImpl.getInstance(RetrofitHelper.service),
-                    settingsPreferences = SettingsPreferences(this),
-                    localDataSource = AppDatabase.getInstance(this).favoriteDao()
-
-                )
-                val favoriteViewModel: FavoriteViewModel = viewModel(
-                    factory = FavoriteFactory(repo)
-                )
-
-                val isConnectedState by isConnected.observeAsState(true)
 
                 Scaffold(
                     bottomBar = {
@@ -154,18 +141,9 @@ class MainActivity : ComponentActivity() {
                             navController,
                             repo,
                             homeViewModel,
-                            favoriteViewModel= favoriteViewModel,
+                            favoriteViewModel = favoriteViewModel,
                             settingsViewModel
                         )
-
-                        if (!isConnectedState && isUnavailableScreen(currentRoute)) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                NoInternetAnimation(onRetry = ::checkNetworkConnection)
-                            }
-                        }
                     }
                 }
             }
@@ -250,12 +228,11 @@ class MainActivity : ComponentActivity() {
     private fun checkNetworkConnection() {
         val isConnectedNow = isInternetAvailable(this)
         _isConnected.postValue(isConnectedNow)
-    }
 
-    override fun onResume() {
-        super.onResume()
-        checkNetworkConnection()
-        registerNetworkCallback()
+        if (!isConnectedNow) {
+            // No internet connection, call CheckInternet
+            homeViewModel.CheckInternet() // Calling the CheckInternet function
+        }
     }
 
     private fun registerNetworkCallback() {
@@ -265,6 +242,12 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e("Network", "Network callback registration failed: ${e.message}")
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkNetworkConnection()
+        registerNetworkCallback()
     }
 
     override fun onPause() {

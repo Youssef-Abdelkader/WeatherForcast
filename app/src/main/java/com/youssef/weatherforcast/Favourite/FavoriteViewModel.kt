@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.Model.WeatherResponse
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +46,7 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
     }
 
     // Added null safety and error handling
-    suspend fun getWeatherSafely(lat: Double, lon: Double): WeatherResponse? {
+    suspend fun getWeatherSafely(lat: Double, lon: Double): Flow<WeatherResponse>? {
         return try {
             repo.getWeather(lat, lon, "metric", "en")
         } catch (e: Exception) {

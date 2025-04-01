@@ -4,14 +4,18 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.youssef.weatherforcast.Model.FavoriteLocation
+import com.youssef.weatherforcast.Model.HomeData
+import com.youssef.weatherforcast.Model.HomeDataConverters
 import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 @Database(
-    entities = [FavoriteLocation::class, WeatherAlert::class],
-    version = 3
+    entities = [FavoriteLocation::class, WeatherAlert::class, HomeData::class],
+    version = 4
 )
+@TypeConverters(HomeDataConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
 
@@ -19,7 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Migration from version 1 to 2 (adding countryCode to favorite_locations table)
+        // Migration from version 1 to 2
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -28,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Migration from version 2 to 3 (creating weather_alerts table)
+        // Migration from version 2 to 3
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
@@ -46,7 +50,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Build the database with migrations
+        // Migration from version 3 to 4 (create Home_Data table)
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS Home_Data (
+                        id INTEGER PRIMARY KEY NOT NULL,
+                        weather TEXT,
+                        forecast TEXT
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -54,7 +72,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "weather_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)  // Add migrations
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance

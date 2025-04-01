@@ -42,12 +42,15 @@ import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.Navigation.Screen
 import com.youssef.weatherforcast.R
 import com.youssef.weatherforcast.Setting.SettingsPreferences
-
 @Composable
-fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: FavoriteViewModel,navToHome: (cityName: String,lat:Double,lon:Double) -> Unit) {
+fun FavoriteScreen(
+    navController: NavController,
+    repo: Repo,
+    favoriteViewModel: FavoriteViewModel,
+    navToHome: (cityName: String, lat: Double, lon: Double) -> Unit
+) {
     val viewModel: FavoriteViewModel = viewModel(factory = FavoriteFactory(repo))
     val favorites by viewModel.favorites.collectAsState(emptyList())
-
 
     Scaffold(
         floatingActionButton = {
@@ -71,15 +74,20 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
 
             LazyColumn {
                 items(favorites) { location ->
+                    // Fetch the weather data using produceState
                     val weatherState = produceState<WeatherResponse?>(initialValue = null) {
-                        value = viewModel.getWeatherSafely(location.latitude, location.longitude)
+                        // Collect the Flow from getWeatherSafely
+                        viewModel.getWeatherSafely(location.latitude, location.longitude)
+                            ?.collect { weather ->
+                                value = weather
+                            }
                     }
 
                     FavoriteItem(
                         location = location,
                         weather = weatherState.value,
                         onRemove = { viewModel.removeFavorite(location) },
-                        navToHome
+                        navToHome = navToHome
                     )
                 }
             }
@@ -88,14 +96,19 @@ fun FavoriteScreen(navController: NavController, repo: Repo, favoriteViewModel: 
 }
 
 @Composable
-fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove: () -> Unit,navToHome: (cityName: String,lat:Double,lon:Double) -> Unit) {
+fun FavoriteItem(
+    location: FavoriteLocation,
+    weather: WeatherResponse?,
+    onRemove: () -> Unit,
+    navToHome: (cityName: String, lat: Double, lon: Double) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 12.dp).clickable {
-                navToHome(location.locationName,location.latitude,location.longitude)
+            .padding(vertical = 8.dp, horizontal = 12.dp)
+            .clickable {
+                navToHome(location.locationName, location.latitude, location.longitude)
             },
-
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
@@ -115,15 +128,12 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                 AsyncImage(
                     model = "https://flagcdn.com/w320/${location.countryCode.lowercase()}.png",
                     contentDescription = "Country Flag",
-                    modifier = Modifier
-                        .size(60.dp) // ✅ تقليل حجم العلم قليلاً
+                    modifier = Modifier.size(60.dp)
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = location.locationName,
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -132,9 +142,9 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude), // ✅ تقليل عدد الأرقام العشرية
-                        style = MaterialTheme.typography.bodySmall, // ✅ استخدام خط أصغر
-                        color = Color.White.copy(alpha = 0.6f) // ✅ تقليل الوضوح
+                        text = "Lat: %.2f, Lon: %.2f".format(location.latitude, location.longitude),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.6f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -149,7 +159,7 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // ✅ عرض أيقونة الطقس
+                // Weather Icon
                 weather?.let {
                     val iconRes = it.weather.firstOrNull()?.icon?.let { iconCode ->
                         it.weatherIconResourceId(iconCode)
@@ -159,17 +169,17 @@ fun FavoriteItem(location: FavoriteLocation, weather: WeatherResponse?, onRemove
                         painter = painterResource(id = iconRes),
                         contentDescription = "Weather Icon",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(50.dp) 
+                        modifier = Modifier.size(50.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // ✅ زر الحذف
+                // Remove Icon
                 IconButton(
                     onClick = onRemove,
                     modifier = Modifier
-                        .size(42.dp) // ✅ تصغير زر الحذف
+                        .size(42.dp)
                         .background(Color(0xFFFF5252), shape = CircleShape)
                 ) {
                     Icon(

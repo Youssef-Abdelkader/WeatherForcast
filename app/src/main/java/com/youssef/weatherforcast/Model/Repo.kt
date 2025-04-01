@@ -1,14 +1,12 @@
-// Repo.kt
 package com.youssef.weatherforcast.Model
 
-import com.youssef.weatherforcast.Model.FavoriteLocation
 import com.youssef.weatherforcast.WeatherAlert.WeatherAlert
 import kotlinx.coroutines.flow.Flow
 
 interface Repo {
     // Weather Data Operations
-    suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): WeatherResponse
-    suspend fun getForecast(lat: Double, lon: Double, units: String, language: String): ForecastResponse
+   suspend fun getWeather(lat: Double, lon: Double, units: String, language: String): Flow<WeatherResponse>
+   suspend fun getForecast(lat: Double, lon: Double, units: String, language: String): Flow<ForecastResponse>
 
     // Settings Operations
     fun saveSetting(key: String, value: String)
@@ -26,5 +24,4 @@ interface Repo {
 
     suspend fun insertHomeDate(homeData: HomeData)
     fun getHomeDate(): Flow<HomeData?>
-
 }

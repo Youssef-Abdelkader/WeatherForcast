@@ -31,6 +31,8 @@ interface FavoriteDao {
 
     @Query("SELECT * FROM weather_alerts ORDER BY id DESC")
     fun getAllAlerts(): Flow<List<WeatherAlert>>
+
+
 }
 
 

@@ -18,8 +18,9 @@
 
     <application
         android:name=".WeatherAlert.WeatherApplication"
+        android:configChanges="locale|layoutDirection|screenSize|orientation"
 
-        android:allowBackup="true"
+    android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -35,6 +36,8 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="locale|layoutDirection"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.WeatherForcast">
@@ -48,6 +51,14 @@
             android:name=".WeatherAlert.MyAlarm"
             android:enabled="true"
             android:exported="true"/>
+
+        <receiver android:name=".Setting.LanguageChangeReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
 
         <service
             android:name=".WeatherAlert.AlertService"

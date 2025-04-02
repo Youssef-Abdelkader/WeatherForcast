@@ -1,6 +1,4 @@
 package com.youssef.weatherforcast.Setting
-import SettingsViewModel
-import SettingsViewModelFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,11 +56,15 @@ fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController, h
             SettingOption(
                 title = "Language",
                 iconRes = R.drawable.langauge,
-                options = listOf("Arabic", "English"),
+                options = listOf("Arabic", "English", "Default (System)"),
                 selectedOption = selectedLanguage,
                 viewModel = viewModel
             ) {
                 viewModel.updateLanguage(it)
+                if (it == "Default (System)") {
+                    // Clear stored preference to use system default
+                    viewModel.updateLanguage("Default")
+                }
                 restartActivity(context)
             }
 

@@ -1,6 +1,5 @@
 package com.youssef.weatherforcast.Navigation
 
-import SettingsViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -18,6 +17,7 @@ import com.youssef.weatherforcast.Home.HomeScreen
 import com.youssef.weatherforcast.Home.HomeViewModel
 import com.youssef.weatherforcast.Model.Repo
 import com.youssef.weatherforcast.Setting.SettingsScreen
+import com.youssef.weatherforcast.Setting.SettingsViewModel
 import com.youssef.weatherforcast.WeatherAlert.AlertScreenMain
 
 @RequiresApi(Build.VERSION_CODES.O)

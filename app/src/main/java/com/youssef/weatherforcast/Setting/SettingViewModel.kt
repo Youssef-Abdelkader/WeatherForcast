@@ -1,3 +1,4 @@
+package com.youssef.weatherforcast.Setting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -6,7 +7,8 @@ import com.youssef.weatherforcast.Model.Repo
 import kotlinx.coroutines.flow.asStateFlow
 
 class SettingsViewModel(private val repo: Repo) : ViewModel() {
-    private val _selectedLanguage = MutableStateFlow(repo.getSetting("language", "English"))
+    // SettingsViewModel.kt
+    private val _selectedLanguage = MutableStateFlow(repo.getSetting("language", "Default"))
     val selectedLanguage: StateFlow<String> = _selectedLanguage
 
     private val _selectedTemperature = MutableStateFlow(repo.getSetting("temperature", "Celsius"))

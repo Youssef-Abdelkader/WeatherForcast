@@ -66,18 +66,22 @@ return flowOf(remoteDataSource.getForecastOverNetwork(lat, lon, units, apiLangCo
     }
     // endregion
 
+    // RepoImpl.kt
+    // RepoImpl.kt
+    override fun getAppLocale(): Locale {
+        return when (getSetting("language", "Default")) {
+            "Arabic" -> Locale("ar")
+            "English" -> Locale.ENGLISH
+            else -> settingsPreferences.getSystemLocale()
+        }
+    }
+
     fun getLanguageCode(language: String): String {
         return when (language) {
             "Arabic" -> "ar"
             "English" -> "en"
-            else -> "en"
-        }
-    }
-
-    override fun getAppLocale(): Locale {
-        return when (getSetting("language", "English")) {
-            "Arabic" -> Locale("ar")
-            else -> Locale.ENGLISH
+            "Default" -> settingsPreferences.getSystemLocale().language
+            else -> settingsPreferences.getSystemLocale().language
         }
     }
 

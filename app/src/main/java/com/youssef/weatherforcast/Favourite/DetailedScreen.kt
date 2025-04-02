@@ -1,6 +1,5 @@
 package com.youssef.weatherforcast.Favourite
 
-import SettingsViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.youssef.weatherforcast.Model.ForecastResponse
 import com.youssef.weatherforcast.Model.WeatherResponse
 import com.youssef.weatherforcast.R
+import com.youssef.weatherforcast.Setting.SettingsViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 

@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 class FavoriteViewModel(private val repo: Repo) : ViewModel() {
     // Changed to StateFlow with initial value
@@ -76,14 +77,22 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
                 }
         }
     }
-    fun convertTemperature(tempFromApi: Double, unit: String): Double {
-        return when (unit) {
-            "Celsius" -> tempFromApi
-            "Fahrenheit" -> tempFromApi // Already in Fahrenheit if unit=imperial
-            "Kelvin" -> tempFromApi + 273.15 // Convert Celsius to Kelvin
-            else -> tempFromApi
+    fun convertTemperature(temp: Double, unit: String): Double {
+        val converted = when (unit) {
+            "Celsius" -> temp
+            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
+            "Kelvin" -> temp+273
+            else -> temp
         }
+        return converted
     }
+
+    fun formatTemperature(temp: Double): String {
+        val rounded = Math.round(temp)
+        return repo.formatNumber(rounded.toDouble())
+    }
+
+
 
     fun reloadSettings() {
         _language.value = repo.getSetting("language", "en")
@@ -122,9 +131,6 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         _lon.value = lon
     }
 
-    fun formatTemperature(temp: Double): Int {
-        return Math.round(temp).toInt()
-    }
 
     suspend fun getWeatherSafely(lat: Double, lon: Double, unitParam: String): Flow<WeatherResponse>? {
         return try {

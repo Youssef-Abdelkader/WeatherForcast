@@ -129,26 +129,23 @@ fun HomeScreen(homeViewModel: HomeViewModel, settingsViewModel: SettingsViewMode
         }
     }
 }
-
 @Composable
 fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperatureUnit: String, locationMode: String) {
     val convertedTemp = homeViewModel.convertTemperature(weather.main.temp, temperatureUnit)
     val formattedTemp = homeViewModel.formatTemperature(convertedTemp)
 
-    // Feels Like Temperature
     val convertedFeelsLike = homeViewModel.convertTemperature(weather.main.feels_like, temperatureUnit)
     val formattedFeelsLike = homeViewModel.formatTemperature(convertedFeelsLike)
 
-    val dateFormat = remember {
-        SimpleDateFormat("EEEE, MMM d", homeViewModel.repository.getAppLocale())
-    }
-    val timeFormat = remember {
-        SimpleDateFormat("hh:mm a", homeViewModel.repository.getAppLocale())
-    }
+    val dateFormat = remember { SimpleDateFormat("EEEE, MMM d", homeViewModel.repository.getAppLocale()) }
+    val timeFormat = remember { SimpleDateFormat("hh:mm a", homeViewModel.repository.getAppLocale()) }
     val formattedDate = dateFormat.format(System.currentTimeMillis())
     val formattedTime = timeFormat.format(System.currentTimeMillis())
 
     val unitSymbol = homeViewModel.getLocalizedUnit(temperatureUnit)
+
+    val cloudPercentage = weather.clouds.all
+    val cloudText = stringResource(R.string.cloud) + ": $cloudPercentage%"
 
     Card(
         modifier = Modifier
@@ -171,39 +168,46 @@ fun WeatherCard(weather: WeatherResponse, homeViewModel: HomeViewModel, temperat
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${weather.name ?: "Unknown"}",
+                text = weather.name ?: "Unknown",
                 style = MaterialTheme.typography.headlineLarge,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the city name
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             val iconCode = weather.weather.firstOrNull()?.icon ?: "01d"
             Image(
                 painter = painterResource(id = weather.weatherIconResourceId(iconCode)),
                 contentDescription = stringResource(R.string.weather_icon),
-                modifier = Modifier.size(120.dp) // Larger icon for more prominence
+                modifier = Modifier.size(120.dp)
             )
 
             Text(
-                text = "$formattedTemp$unitSymbol", // Larger temperature with unit
+                text = "$formattedTemp$unitSymbol",
                 style = MaterialTheme.typography.displayLarge,
                 color = Color.White,
-                modifier = Modifier.padding(vertical = 20.dp) // Increased vertical spacing
+                modifier = Modifier.padding(vertical = 20.dp)
             )
 
-            // Add "Feels Like" below the temperature
             Text(
                 text = "${stringResource(R.string.feels_like)}: $formattedFeelsLike$unitSymbol",
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White.copy(alpha = 0.85f),
-                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the "Feels Like" temperature
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             Text(
                 text = weather.weather.firstOrNull()?.description ?: stringResource(R.string.unknown),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White.copy(alpha = 0.85f),
-                modifier = Modifier.padding(bottom = 16.dp) // Spacing below the description
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Display Cloud Information
+            Text(
+                text = cloudText,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             Text(

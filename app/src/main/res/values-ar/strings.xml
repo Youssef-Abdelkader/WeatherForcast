@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Weather Forecast</string>
+    <string name="app_name">توقعات الطقس</string>
     <string name="next_hours">الساعات القادمة</string>
     <string name="next_days">الأيام القادمة</string>
     <string name="loading_weather">جاري تحميل حالة الطقس...</string>
@@ -20,5 +20,6 @@
     <string name="sunset">غروب الشمس</string>
     <string name="sea_level">مستوى سطح البحر</string>
     <string name="feels_like">درجة الحرارة المحسوسة</string>
+    <string name="cloud">غيمة</string>
 
 </resources>

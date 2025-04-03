@@ -54,11 +54,33 @@ fun MapScreen(navController: NavController, repo: Repo,    homeViewModel: HomeVi
     val mapScreenViewModel: MapScreenViewModel = viewModel(factory = MapScreenViewModelFactory(repo))
     val insertState by mapScreenViewModel.insertState.collectAsStateWithLifecycle()
 
-    Places.initializeWithNewPlacesApiEnabled(context, Constants.GeoApi)
-    val placesClient = Places.createClient(context)
 
+    LaunchedEffect(Unit) {
+        if (!Places.isInitialized()) {
+            try {
+                Places.initialize(context, Constants.GeoApi)
+            } catch (e: Exception) {
+                Log.e("MapScreen", "Places initialization failed", e)
+                Toast.makeText(context, "Maps service initialization failed", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    Places.initializeWithNewPlacesApiEnabled(context, Constants.GeoApi)
+    val placesClient = remember {
+        Places.createClient(context)
+    }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(30.033, 31.233), 10f)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                (placesClient as? AutoCloseable)?.close()
+            } catch (e: Exception) {
+                Log.e("MapScreen", "Error closing Places client", e)
+            }
+        }
     }
 
     var searchText by remember { mutableStateOf("") }
@@ -102,6 +124,7 @@ fun MapScreen(navController: NavController, repo: Repo,    homeViewModel: HomeVi
         }
     }
 
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -114,8 +137,6 @@ fun MapScreen(navController: NavController, repo: Repo,    homeViewModel: HomeVi
                             name = searchText,
                             context = context
                         )
-                        navController.popBackStack()
-
                     }
                 },
                 modifier = Modifier.padding(16.dp)
@@ -123,7 +144,8 @@ fun MapScreen(navController: NavController, repo: Repo,    homeViewModel: HomeVi
                 Icon(Icons.Default.Favorite, "Select Location")
             }
         }
-    ) { paddingValues ->
+    )
+    { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             GoogleMap(
                 modifier = Modifier

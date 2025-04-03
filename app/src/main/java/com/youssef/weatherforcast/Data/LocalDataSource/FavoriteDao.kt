@@ -19,6 +19,7 @@ interface FavoriteDao {
     @Query("SELECT * FROM Home_Data")
     fun getHomeData(): Flow<HomeData?>
 
+
     @Delete
     suspend fun deleteFavorite(favoriteLocation: FavoriteLocation)
     @Query("SELECT * FROM favorite_locations")

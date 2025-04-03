@@ -1,4 +1,5 @@
 package com.youssef.weatherforcast.Favourite
+import android.util.Log
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.collect
 
@@ -92,9 +93,23 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
         return repo.formatNumber(rounded.toDouble())
     }
 
+//    fun checkInternet() {
+//        viewModelScope.launch {
+//            try {
+//                val homeData = repo.getHomeDate().first()
+//                if (homeData != null) {
+//                    _weather.value = homeData.weather
+//                    _forecast.value = homeData.forecast
+//                }
+//            } catch (e: Exception) {
+//                Log.e("HomeViewModel", "Error loading cached data: ${e.message}")
+//            }
+//        }
+//    }
 
 
-    fun reloadSettings() {
+
+            fun reloadSettings() {
         _language.value = repo.getSetting("language", "en")
         _units.value = repo.getSetting("temperature", "Celsius")
         _location.value = repo.getSetting("location", "GPS")
@@ -135,6 +150,7 @@ class FavoriteViewModel(private val repo: Repo) : ViewModel() {
     suspend fun getWeatherSafely(lat: Double, lon: Double, unitParam: String): Flow<WeatherResponse>? {
         return try {
             repo.getWeather(lat, lon, unitParam, language.value)
+
         } catch (e: Exception) {
             _errorMessage.value = "Failed to get weather: ${e.message}"
             null
